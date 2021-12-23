@@ -7,6 +7,9 @@ import * as CUBE from "../libs/cube.js";
 
 import * as dat from "../libs/dat.gui.module.js";
 
+const MAX_FOVY = 100;
+const MIN_FOVY = 1;
+
 /** @type WebGLRenderingContext */
 let gl;
 
@@ -88,6 +91,17 @@ function setup(shaders) {
 		
 	mView = lookAt(camera.eye, camera.at, camera.up);
   }
+
+	window.addEventListener("wheel", scroll);
+}
+
+function scroll(event) {
+	let newFovy = camera.fovy + event.deltaY * 0.01;
+
+	if(newFovy >= MIN_FOVY && newFovy <= MAX_FOVY) {
+		camera.fovy = newFovy;
+		updatePerspective();
+	}
 }
 
 //Auxiliary functions
@@ -122,7 +136,7 @@ function setupGUI() {
 	optionsGUI.add(options, "normals").listen();
 
 	const cameraGUI = gui.addFolder("camera");
-	cameraGUI.add(camera, "fovy", 1, 100).step(1).onChange(updatePerspective);
+	cameraGUI.add(camera, "fovy", MIN_FOVY, MAX_FOVY).step(1).onChange(updatePerspective).listen();
 	cameraGUI.add(camera, "far", 20, 100).onChange(updatePerspective);
 	cameraGUI.add(camera, "near", 0.1, 20).onChange(updatePerspective);
 
