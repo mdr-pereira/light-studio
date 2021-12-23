@@ -2,10 +2,10 @@ import { buildProgramFromSources, loadShadersFromURLS, setupWebGL } from "../lib
 import { ortho, perspective, lookAt, flatten, vec3, vec4, inverse, mult, cross, dot } from "../libs/MV.js";
 import { modelView, loadMatrix, multMatrix, multRotationY, multScale, pushMatrix, popMatrix, multTranslation, multRotationX, multRotationZ, loadIdentity } from "../libs/stack.js";
 
-import * as SPHERE from '../libs/sphere.js';
-import * as CUBE from '../libs/cube.js';
+import * as SPHERE from "../libs/sphere.js";
+import * as CUBE from "../libs/cube.js";
 
-import * as dat from '../libs/dat.gui.module.js';
+import * as dat from "../libs/dat.gui.module.js";
 
 /** @type WebGLRenderingContext */
 let gl;
@@ -18,9 +18,9 @@ let mView;
 let uColor;
 
 /* Global Vars */
-let time = 0;           // Global simulation time in days
-let speed = 1 / 60;     // Speed (how many days added to time on each render pass
-let animation = true;   // Animation is running
+let time = 0; // Global simulation time in days
+let speed = 1 / 60; // Speed (how many days added to time on each render pass
+let animation = true; // Animation is running
 
 /* Shader Programs */
 let program;
@@ -31,78 +31,89 @@ let options;
 //=========================================================================
 
 function setup(shaders) {
-	// Setup
-	let canvas = document.getElementById("gl-canvas");
+  // Setup
+  let canvas = document.getElementById("gl-canvas");
 
-	gl = setupWebGL(canvas);
+	//GL focused setup
+  gl = setupWebGL(canvas);
+  program = buildProgramFromSources(gl, shaders["shader.vert"], shaders["shader.frag"]);
 
-	// Build Programs
-	program = buildProgramFromSources(gl, shaders["shader.vert"], shaders["shader.frag"]);
+  camera = {
+    eye: vec3(0, 0, -5),
+    at: vec3(0, 0, 0),
+    up: vec3(0, 1, 0),
+    fovy: 45,
+    aspect: 1,
+    near: 0.1,
+    far: 20,
+  };
 
-	camera = {
-		eye: vec3(0, 0, -5), 
-		at: vec3(0, 0, 0),
-		up: vec3(0, 1, 0),
-		fovy: 45,
-		aspect: 1,
-		near: 0.1,
-		far: 20
-	}
+  options = {
+    wireframe: false,
+    normals: true,
+  };
 
-  	options = {
-		wireframe: false,
-		normals: true
-	}
+  //Setup calls
+  resize_canvas();
+	setupGUI();
 
-	// Event Listener Setup
-	resize_canvas();
-
-	mView = lookAt(camera.eye, camera.at, camera.up);
-
-	window.addEventListener("resize", resize_canvas);
-
-	// Attrib Locations
-			
-	// Uniform Locations
-	uColor = gl.getUniformLocation(program, 'uColor')
-		
-	// WebGL
+	// WebGl
+  uColor = gl.getUniformLocation(program, "uColor");
+	
 	gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
+	// Initialization of library objects
 	SPHERE.init(gl);
 
-	gl.enable(gl.DEPTH_TEST);   // Enables Z-buffer depth test
-	
-	let gui = setupGUI(camera, options);
+	gl.enable(gl.DEPTH_TEST); // Enables Z-buffer depth test
 
-	window.requestAnimationFrame(render);
+  window.requestAnimationFrame(render);
 
-	function resize_canvas(event) {
-		canvas.width = window.innerWidth;
-		canvas.height = window.innerHeight;
-	
-		gl.viewport(0, 0, canvas.width, canvas.height);
-	
-		camera.aspect = canvas.width/canvas.height;
-	
-		mProjection = perspective(camera.fovy, camera.aspect, camera.near, camera.far);
-	}
+  function resize_canvas(event) {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    gl.viewport(0, 0, canvas.width, canvas.height);
+
+    camera.aspect = canvas.width / canvas.height;
+
+    mProjection = perspective(
+      camera.fovy,
+      camera.aspect,
+      camera.near,
+      camera.far
+    );	
+
+	loadMatrix(mProjection);
+		
+	mView = lookAt(camera.eye, camera.at, camera.up);
+  }
 }
+
+//Auxiliary functions
 
 function uploadModelView() {
-    gl.uniformMatrix4fv(gl.getUniformLocation(program, "mModelView"), false, flatten(modelView()));
+	gl.uniformMatrix4fv(gl.getUniformLocation(program, "mModelView"), false, flatten(modelView()));
 }
 
+/**
+ * Updates the projection matrix with current camera data.
+ */
 function updatePerspective() {
 	mProjection = perspective(camera.fovy, camera.aspect, camera.near, camera.far);
 }
 
+/**
+ * Updates the view matrix with current camera data.
+ */
 function updateCamera() {
 	mView = lookAt(camera.eye, camera.at, camera.up);
 }
 
-function setupGUI(camera, options) {
-
+/**
+ * Setup related to the graphical user interface.
+ */
+function setupGUI() {
 	const gui = new dat.GUI();
 
 	const optionsGUI = gui.addFolder("options");
@@ -117,23 +128,19 @@ function setupGUI(camera, options) {
 
 	const eye = cameraGUI.addFolder("eye");
 	eye.add(camera.eye, 0).onChange(updateCamera);
-	eye.add(camera.eye, 1).onChange(updateCamera);;
-	eye.add(camera.eye, 2).onChange(updateCamera);;
+	eye.add(camera.eye, 1).onChange(updateCamera);
+	eye.add(camera.eye, 2).onChange(updateCamera);
 
 	const at = cameraGUI.addFolder("at");
-	at.add(camera.at, 0).onChange(updateCamera);;
-	at.add(camera.at, 1).onChange(updateCamera);;
-	at.add(camera.at, 2).onChange(updateCamera);;
+	at.add(camera.at, 0).onChange(updateCamera);
+	at.add(camera.at, 1).onChange(updateCamera);
+	at.add(camera.at, 2).onChange(updateCamera);
 
 	const up = cameraGUI.addFolder("up");
-	up.add(camera.up, 0).onChange(updateCamera);;
-	up.add(camera.up, 1).onChange(updateCamera);;
-	up.add(camera.up, 2).onChange(updateCamera);;
-
-	return gui
+	up.add(camera.up, 0).onChange(updateCamera);
+	up.add(camera.up, 1).onChange(updateCamera);
+	up.add(camera.up, 2).onChange(updateCamera);
 }
-
-
 
 //=============================================================================
 
