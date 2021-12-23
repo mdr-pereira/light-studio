@@ -161,6 +161,5 @@ function render() {
 	SPHERE.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
 }
 
-
 const urls = ["shader.vert", "shader.frag"];
 loadShadersFromURLS(urls).then(shaders => setup(shaders))
