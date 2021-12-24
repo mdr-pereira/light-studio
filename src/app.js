@@ -4,14 +4,21 @@ import { modelView, loadMatrix, multMatrix, multRotationY, multScale, pushMatrix
 
 import * as SPHERE from "../libs/sphere.js";
 import * as CUBE from "../libs/cube.js";
+import * as CYLINDER from "../libs/cylinder.js";
+import * as PYRAMID from "../libs/pyramid.js";
+import * as TORUS from "../libs/torus.js";
 
 import * as dat from "../libs/dat.gui.module.js";
+
+const PRIMITIVES = [SPHERE, CUBE, CYLINDER, PYRAMID, TORUS];
 
 const MAX_FOVY = 100;
 const MIN_FOVY = 1;
 
 /** @type WebGLRenderingContext */
 let gl;
+
+let currentPrimitive = 0;
 
 /* Matrices */
 let mProjection;
@@ -67,6 +74,11 @@ function setup(shaders) {
 
 	// Initialization of library objects
 	SPHERE.init(gl);
+	CUBE.init(gl);
+	CYLINDER.init(gl); 
+	PYRAMID.init(gl);
+	TORUS.init(gl);
+	
 
 	gl.enable(gl.DEPTH_TEST); // Enables Z-buffer depth test
 
@@ -92,10 +104,21 @@ function setup(shaders) {
 	mView = lookAt(camera.eye, camera.at, camera.up);
   }
 
-	window.addEventListener("wheel", scroll);
+	window.addEventListener("wheel", zoom);
+
+	window.addEventListener('keydown', (event) => {
+		switch(event.key) {
+			case '+':
+				changePrimitive();
+		}
+	})
 }
 
-function scroll(event) {
+
+//=============================================================================
+//Auxiliary functions
+
+function zoom(event) {
 	let newFovy = camera.fovy + event.deltaY * 0.01;
 
 	if(newFovy >= MIN_FOVY && newFovy <= MAX_FOVY) {
@@ -104,7 +127,12 @@ function scroll(event) {
 	}
 }
 
-//Auxiliary functions
+function changePrimitive(changeTo = (++currentPrimitive) % PRIMITIVES.length) {
+	currentPrimitive = changeTo;
+}
+
+//=============================================================================
+// WebGL Auxiliary functions
 
 function uploadModelView() {
 	gl.uniformMatrix4fv(gl.getUniformLocation(program, "mModelView"), false, flatten(modelView()));
@@ -154,9 +182,14 @@ function setupGUI() {
 	up.add(camera.up, 0).onChange(updateCamera);
 	up.add(camera.up, 1).onChange(updateCamera);
 	up.add(camera.up, 2).onChange(updateCamera);
+
+	const objectGui = gui.addFolder("objects");
+	objectGui.add();
+
 }
 
 //=============================================================================
+
 
 function render() {
 	if (animation) time += speed;
@@ -172,7 +205,7 @@ function render() {
 
 	gl.uniform3fv(uColor, flatten(vec3(0.25, 0.25, 0.25)))
 	uploadModelView();
-	SPHERE.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
+	PRIMITIVES[currentPrimitive].draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
 }
 
 const urls = ["shader.vert", "shader.frag"];
