@@ -21,7 +21,8 @@ const MAX_LIGHTS = 8;
 let gl;
 
 /* Shader Programs */
-let program;
+let objectProgram;
+let lightProgram;
 
 let cameraOptions;
 let generalOptions;
@@ -73,7 +74,8 @@ function setup(shaders) {
 
 	//GL focused setup
   gl = setupWebGL(canvas);
-  program = buildProgramFromSources(gl, shaders["shader.vert"], shaders["objects.frag"]);
+  objectProgram = buildProgramFromSources(gl, shaders["shader.vert"], shaders["objects.frag"]);
+	lightProgram = buildProgramFromSources(gl, shaders["shader.vert"], shaders["lights.frag"]);
 
   cameraOptions = {
     eye: vec3(0, 0, -5),
@@ -109,7 +111,7 @@ function setup(shaders) {
 	setupGUI();
 
 	// WebGl
-  uColor = gl.getUniformLocation(program, "uColor");
+  uColor = gl.getUniformLocation(objectProgram, "uColor");
 	
 	gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
@@ -124,6 +126,10 @@ function setup(shaders) {
 	changeZBufferState(false);
 
   window.requestAnimationFrame(render);
+
+	//Temporary lights
+	const RED = vec3(1.0, 0.0, 0.0);
+	lights.push(new Light(vec3(0.0, 2.0, 0.0), RED, RED, RED, true));
 
   function resize_canvas(event) {
     canvas.width = window.innerWidth;
@@ -210,7 +216,7 @@ function addLight(isDirectional) {
 // WebGL Auxiliary functions
 
 function uploadModelView() {
-	gl.uniformMatrix4fv(gl.getUniformLocation(program, "mModelView"), false, flatten(modelView()));
+	gl.uniformMatrix4fv(gl.getUniformLocation(objectProgram, "mModelView"), false, flatten(modelView()));
 }
 
 /**
@@ -273,15 +279,24 @@ function setupGUI() {
 function drawScene() {
 	gl.uniform3fv(uColor, flatten(vec3(0.85, 0.68, 0.81)))
 	uploadModelView();
-	PRIMITIVES[objectOptions.currentPrimitive].draw(gl, program, generalOptions.wireframe ? gl.LINES : gl.TRIANGLES);
+	PRIMITIVES[objectOptions.currentPrimitive].draw(gl, objectProgram, generalOptions.wireframe ? gl.LINES : gl.TRIANGLES);
 
 	pushMatrix();
 		gl.uniform3fv(uColor, flatten(vec3(1, 0.68, 0.81)));
 		multTranslation([0, -0.5, 0]);
 		multScale([3, 0.1, 3]);
 		uploadModelView();
-		CUBE.draw(gl, program, generalOptions.wireframe ? gl.LINES : gl.TRIANGLES);
+		CUBE.draw(gl, objectProgram, generalOptions.wireframe ? gl.LINES : gl.TRIANGLES);
 	popMatrix();
+}
+
+function drawLights() {
+		gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+		gl.enableVertexAttribArray(attribute);
+		gl.vertexAttribPointer(attribute, elemSize, gl.FLOAT, false, stride, offset);
+		gl.drawArrays(glMode, 0, amount)
+		gl.disableVertexAttribArray(attribute);
+	}
 }
 
 function render() {
@@ -290,16 +305,20 @@ function render() {
 
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 			
-	gl.useProgram(program);
+	gl.useProgram(objectProgram);
 	
-	gl.uniformMatrix4fv(gl.getUniformLocation(program, "mProjection"), false, flatten(mProjection));
+	gl.uniformMatrix4fv(gl.getUniformLocation(objectProgram, "mProjection"), false, flatten(mProjection));
 	
 	loadMatrix(mView);
 
 	drawScene();
 
-	for(let aux in lights) {
-		// Render às luzes
+	gl.useProgram(lightProgram);
+
+	for(let i in lights) {
+		gl.uniform3fv(uColor, flatten(lights[i].Ia));
+		uploadModelView();
+		
 	}
 
 }
