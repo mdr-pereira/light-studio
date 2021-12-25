@@ -18,7 +18,11 @@ const MIN_FOVY = 1;
 /** @type WebGLRenderingContext */
 let gl;
 
-let currentPrimitive = 0;
+/* Shader Programs */
+let program;
+
+let camera;
+let options;
 
 /* Matrices */
 let mProjection;
@@ -32,11 +36,7 @@ let time = 0; // Global simulation time in days
 let speed = 1 / 60; // Speed (how many days added to time on each render pass
 let animation = true; // Animation is running
 
-/* Shader Programs */
-let program;
-
-let camera;
-let options;
+let objectOptions;
 
 //=========================================================================
 
@@ -63,8 +63,13 @@ function setup(shaders) {
     normals: true,
   };
 
-  //Setup calls
-  resize_canvas();
+	objectOptions = {
+		currentPrimitive: 0,
+		zBufferEnabled: true
+	}
+
+	//Setup calls
+	resize_canvas();
 	setupGUI();
 
 	// WebGl
@@ -80,7 +85,7 @@ function setup(shaders) {
 	TORUS.init(gl);
 	
 
-	gl.enable(gl.DEPTH_TEST); // Enables Z-buffer depth test
+	changeZBufferState(false);
 
   window.requestAnimationFrame(render);
 
@@ -92,24 +97,27 @@ function setup(shaders) {
 
     camera.aspect = canvas.width / canvas.height;
 
-    mProjection = perspective(
-      camera.fovy,
-      camera.aspect,
-      camera.near,
-      camera.far
-    );	
+		updatePerspective();
 
-	loadMatrix(mProjection);
-		
-	mView = lookAt(camera.eye, camera.at, camera.up);
+		loadMatrix(mProjection);
+
+		updateCamera();
   }
 
+	//Event listeners
+
+	window.addEventListener("resize", resize_canvas)
 	window.addEventListener("wheel", zoom);
 
 	window.addEventListener('keydown', (event) => {
 		switch(event.key) {
 			case '+':
 				changePrimitive();
+				break;
+
+			case 'b':
+				changeZBufferState();
+				break;
 		}
 	})
 }
@@ -127,8 +135,18 @@ function zoom(event) {
 	}
 }
 
-function changePrimitive(changeTo = (++currentPrimitive) % PRIMITIVES.length) {
-	currentPrimitive = changeTo;
+function changePrimitive(changeTo = (++objectOptions.currentPrimitive) % PRIMITIVES.length) {
+	objectOptions.currentPrimitive = changeTo;
+}
+
+function changeZBufferState(changeToDisabled = !objectOptions.zBufferEnabled) {
+	if(changeToDisabled) {
+		gl.disable(gl.DEPTH_TEST);
+	} else {
+		gl.enable(gl.DEPTH_TEST);
+	}
+
+	objectOptions.zBufferEnabled = changeToDisabled;
 }
 
 //=============================================================================
@@ -184,12 +202,24 @@ function setupGUI() {
 	up.add(camera.up, 2).onChange(updateCamera);
 
 	const objectGui = gui.addFolder("objects");
-	objectGui.add();
-
+	objectGui.add(objectOptions, "currentPrimitive", {'Sphere': 0, 'Cube': 1, 'Cylinder': 2,'Pyramid': 3, 'Torus': 4}).listen();
 }
 
 //=============================================================================
 
+function drawScene() {
+	gl.uniform3fv(uColor, flatten(vec3(0.85, 0.68, 0.81)))
+	uploadModelView();
+	PRIMITIVES[objectOptions.currentPrimitive].draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
+
+	pushMatrix();
+		gl.uniform3fv(uColor, flatten(vec3(1, 0.68, 0.81)));
+		multTranslation([0, -0.5, 0]);
+		multScale([3, 0.1, 3]);
+		uploadModelView();
+		CUBE.draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
+	popMatrix();
+}
 
 function render() {
 	if (animation) time += speed;
@@ -203,9 +233,8 @@ function render() {
 	
 	loadMatrix(mView);
 
-	gl.uniform3fv(uColor, flatten(vec3(0.25, 0.25, 0.25)))
-	uploadModelView();
-	PRIMITIVES[currentPrimitive].draw(gl, program, options.wireframe ? gl.LINES : gl.TRIANGLES);
+	drawScene();
+
 }
 
 const urls = ["shader.vert", "shader.frag"];

@@ -14,12 +14,12 @@ var edges_buffer;
 
 var CYLINDER_N = 30;
 
-function _addEdge(a, b, c, d) {
+function _addEdge(diskPoints, a, b, c, d) {
 	edges.push(a);
 	edges.push(0);
 
 	edges.push(b);
-	edges.push(CYLINDER_N + 1);
+	edges.push(diskPoints + 1);
 
 	edges.push(a);
 	edges.push(b);
@@ -47,16 +47,16 @@ function _addTriangle(a, b, c) {
 	faces.push(c);
 }
 
-function _build() {
-	_buildVertices();
-	_buildFaces();
-	_buildEdges();
+function _build(diskPoints) {
+	_buildVertices(diskPoints);
+	_buildFaces(diskPoints);
+	_buildEdges(diskPoints);
 }
 
-function _buildCircle(offset, dir) {
+function _buildCircle(diskPoints, offset, dir) {
 	var o = 0;
 
-	for (var i = 1; i < CYLINDER_N; i++) {
+	for (var i = 1; i < diskPoints; i++) {
 		o = offset + i;
 		
 		_addTriangle(offset, dir? o : o+1, dir ? o + 1 : o);
@@ -65,29 +65,29 @@ function _buildCircle(offset, dir) {
 	_addTriangle(offset, dir? o + 1: offset+1, dir? offset + 1: o+1);
 }
 
-function _buildEdges() {
-	var offset = 2 * (CYLINDER_N + 1);
+function _buildEdges(diskPoints) {
+	var offset = 2 * (diskPoints + 1);
 	var o = 0;
 	
-	for (var i = 0; i < CYLINDER_N - 1; i++) {
+	for (var i = 0; i < diskPoints - 1; i++) {
 		o = offset + i * 2;
 		
-		_addEdge(o, o + 1, o + 2, o + 3);
+		_addEdge(diskPoints, o, o + 1, o + 2, o + 3);
 	}
 
-	_addEdge(o + 2, o + 3, offset, offset + 1);
+	_addEdge(diskPoints, o + 2, o + 3, offset, offset + 1);
 }
 
-function _buildFaces() {
-	_buildCircle(0, false);
-	_buildCircle(CYLINDER_N + 1, true);
-	_buildSurface(2 * (CYLINDER_N + 1));
+function _buildFaces(diskPoints) {
+	_buildCircle(diskPoints, 0, false);
+	_buildCircle(diskPoints, diskPoints + 1, true);
+	_buildSurface(diskPoints, 2 * (diskPoints + 1));
 }
 
-function _buildSurface(offset) {
+function _buildSurface(diskPoints, offset) {
 	var o = 0;
 
-	for (var i = 0; i < CYLINDER_N - 1; i++) {
+	for (var i = 0; i < diskPoints - 1; i++) {
 		o = offset + i * 2;
 
 		_addFace(o, o + 1, o + 2, o + 3);
@@ -96,7 +96,7 @@ function _buildSurface(offset) {
 	_addFace(o + 2, o + 3, offset, offset + 1);
 }
 
-function _buildVertices() {
+function _buildVertices(diskPoints) {
 	var top = [];
 	var bottom = [];
 	var middle = [];
@@ -114,9 +114,9 @@ function _buildVertices() {
 	top_normals.push(up);
 	bottom_normals.push(down);
 
-	var segment = Math.PI * 2 / CYLINDER_N;
+	var segment = Math.PI * 2 / diskPoints;
     	
-	for (var i = 1; i <= CYLINDER_N; i++) {
+	for (var i = 1; i <= diskPoints; i++) {
 		var x = Math.cos(i * segment) * 0.5;
 		var z = Math.sin(i * segment) * 0.5;
         
@@ -153,8 +153,8 @@ function draw(gl, program, primitive) {
     gl.drawElements(primitive, primitive == gl.LINES? edges.length : faces.length, gl.UNSIGNED_SHORT, 0);   
 }
 
-function init(gl) {
-	_build();
+function init(gl, diskPoints=CYLINDER_N) {
+	_build(diskPoints);
 	_uploadData(gl);
 }
 

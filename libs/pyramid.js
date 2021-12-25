@@ -27,7 +27,7 @@ function init(gl) {
 
 function _build()
 {
-    _addSide(0,1,2,normalize(vec3(0,-1,0)));
+    _addSide(0,1,2,normalize(vec3(2,1,0)));
     _addSide(0,2,3,normalize(vec3(0,1,-2)));
     _addSide(0,3,4,normalize(vec3(-2,1,0)));
     _addSide(0,4,1,normalize(vec3(0,1,2)));

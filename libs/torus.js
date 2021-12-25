@@ -23,72 +23,72 @@ var torus_DISK_RADIUS = 0.2;
 var torus_RADIUS = 0.5;
 
 function init(gl, ppd=torus_PPD, nd=torus_DISKS, big_r = torus_RADIUS, small_r = torus_DISK_RADIUS) {
-    _build(torus_PPD, torus_DISKS, big_r, small_r);
+    _build(ppd, nd, big_r, small_r);
     _uploadData(gl);
 }
 
-function _getIndex(d, p){
-    const diskOffset = d%torus_DISKS*torus_PPD;
-    return diskOffset+(p%torus_PPD);
+function _getIndex(ppd, nd, d, p){
+    const diskOffset = d%nd*ppd;
+    return diskOffset+(p%ppd);
 }
 
 // Generate points using polar coordinates
-function _build() 
+function _build(ppd, nd, big_r, small_r) 
 { 
-    var diskStep = 2*Math.PI/torus_DISKS;
-    var pointStep = 2*Math.PI/torus_PPD;
+    var diskStep = 2*Math.PI/nd;
+    var pointStep = 2*Math.PI/ppd;
     
     // Generate points
     for(let phi=0; phi<2*Math.PI; phi+=diskStep) {
         for(let theta=0; theta<2*Math.PI; theta+=pointStep) {
             // "em pé"
             /*var pt = vec3(
-                (torus_RADIUS+torus_DISK_RADIUS*Math.cos(theta))*Math.cos(phi),
-                (torus_RADIUS+torus_DISK_RADIUS*Math.cos(theta))*Math.sin(phi),
-                torus_DISK_RADIUS*Math.sin(theta)
+                (big_r+small_r*Math.cos(theta))*Math.cos(phi),
+                (big_r+small_r*Math.cos(theta))*Math.sin(phi),
+                small_r*Math.sin(theta)
             );*/
             // "deitado"
             var pt = vec3(
-                (torus_RADIUS+torus_DISK_RADIUS*Math.cos(theta))*Math.cos(phi),
-                torus_DISK_RADIUS*Math.sin(theta),
-                (torus_RADIUS+torus_DISK_RADIUS*Math.cos(theta))*Math.sin(phi)
+                (big_r+small_r*Math.cos(theta))*Math.cos(phi),
+                small_r*Math.sin(theta),
+                (big_r+small_r*Math.cos(theta))*Math.sin(phi)
             );
             points.push(pt);
             // normal - "deitado"
             var normal = vec3(
-                (torus_DISK_RADIUS*Math.cos(theta))*Math.cos(phi),
-                torus_DISK_RADIUS*Math.sin(theta),
-                (torus_DISK_RADIUS*Math.cos(theta))*Math.sin(phi)
+                (small_r*Math.cos(theta))*Math.cos(phi),
+                small_r*Math.sin(theta),
+                (small_r*Math.cos(theta))*Math.sin(phi)
             ); 
             normals.push(normalize(normal));
         }
     }
     
     //Edges
-    for(let d=0; d<torus_DISKS; d++){
-        for(let p=0; p<torus_PPD; p++){
+    for(let d=0; d<nd; d++){
+        for(let p=0; p<ppd; p++){
             //Edge from point to next point in disk
-            edges.push(_getIndex(d,p));
-            edges.push(_getIndex(d,p+1));
+            edges.push(_getIndex(ppd, nd, d,p));
+            edges.push(_getIndex(ppd, nd, d,p+1));
             
             //Edge from point to same point in next disk
-            edges.push(_getIndex(d,p));
-            edges.push(_getIndex(d+1,p));  
+            edges.push(_getIndex(ppd, nd, d,p));
+            edges.push(_getIndex(ppd, nd, d+1,p));  
 
         }
     }
     
     //Faces
-    for(let d=0; d<torus_DISKS; d++){
-        const diskOffset = d*torus_PPD;
-        for(let p=0; p<torus_PPD; p++){
-            faces.push(_getIndex(d,p));
-            faces.push(_getIndex(d,p+1));
-            faces.push(_getIndex(d+1,p)); 
+    for(let d=0; d<nd; d++){
+        const diskOffset = d*ppd;
+        for(let p=0; p<ppd; p++){
+            faces.push(_getIndex(ppd, nd, d,p));
+            faces.push(_getIndex(ppd, nd, d,p+1));
+            faces.push(_getIndex(ppd, nd, d+1,p)); 
             
-            faces.push(_getIndex(d+1,p));
-            faces.push(_getIndex(d,p+1));
-            faces.push(_getIndex(d+1,p+1)); 
+            faces.push(_getIndex(ppd, nd, d+1,p));
+            faces.push(_getIndex(ppd, nd, d,p+1));
+            faces.push(_getIndex(ppd, nd, d+1,p+1)); 
         }
     }
     
