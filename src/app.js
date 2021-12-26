@@ -32,7 +32,8 @@ let mProjection;
 let mView;
 
 /* GLSL */
-let uColor;
+let uObjectColor;
+let uLightColor;
 
 /* Global Vars */
 let time = 0; // Global simulation time in days
@@ -111,8 +112,9 @@ function setup(shaders) {
 	setupGUI();
 
 	// WebGl
-  uColor = gl.getUniformLocation(objectProgram, "uColor");
-	
+	uObjectColor = gl.getUniformLocation(objectProgram, "uColor");
+	uLightColor = gl.getUniformLocation(lightProgram, "uColor");
+
 	gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
 	// Initialization of library objects
@@ -125,7 +127,7 @@ function setup(shaders) {
 
 	changeZBufferState(false);
 
-  window.requestAnimationFrame(render);
+	window.requestAnimationFrame(render);
 
 	//Temporary lights
 	const RED = vec3(1.0, 0.0, 0.0);
@@ -178,8 +180,9 @@ function zoom(event) {
 
 	if(newFovy >= MIN_FOVY && newFovy <= MAX_FOVY) {
 		cameraOptions.fovy = newFovy;
-		updatePerspective();
 	}
+
+	updatePerspective();
 }
 
 function changePrimitive(changeTo = (++objectOptions.currentPrimitive) % PRIMITIVES.length) {
@@ -201,12 +204,13 @@ function addLight(isDirectional) {
 	const Ia = vec3(1.0, 0.0, 0.0);
 	const Id = vec3(0.0, 1.0, 0.0);
 	const Is = vec3(0.0, 0.0, 1.0);
-	const from = vec3(0.0, 1.0, 0.0);
 
 	if(lights.length < MAX_LIGHTS) {
 		if(!isDirectional) {
 			lights.push(new Light(position, Ia, Id, Is, true));	
 		} else {
+			const from = vec3(0.0, 1.0, 0.0);
+
 			lights.push(new DirectionalLight(position, Ia, Id, Is, from, true));
 		}
 	}
@@ -215,8 +219,12 @@ function addLight(isDirectional) {
 //=============================================================================
 // WebGL Auxiliary functions
 
-function uploadModelView() {
-	gl.uniformMatrix4fv(gl.getUniformLocation(objectProgram, "mModelView"), false, flatten(modelView()));
+function uploadModelView(program = objectProgram) {
+	gl.uniformMatrix4fv(gl.getUniformLocation(program, "mModelView"), false, flatten(modelView()));
+}
+
+function uploadProjection(program = objectProgram) {
+	gl.uniformMatrix4fv(gl.getUniformLocation(program, "mProjection"), false, flatten(mProjection));
 }
 
 /**
@@ -246,23 +254,23 @@ function setupGUI() {
 
 	const cameraGUI = gui.addFolder("camera");
 	cameraGUI.add(cameraOptions, "fovy", MIN_FOVY, MAX_FOVY).step(1).onChange(updatePerspective).listen();
-	cameraGUI.add(cameraOptions, "far", 20, 100).onChange(updatePerspective);
+	cameraGUI.add(cameraOptions, "far", 0, 20).onChange(updatePerspective);
 	cameraGUI.add(cameraOptions, "near", 0.1, 20).onChange(updatePerspective);
 
 	const eye = cameraGUI.addFolder("eye");
-	eye.add(cameraOptions.eye, 0).onChange(updateCamera);
-	eye.add(cameraOptions.eye, 1).onChange(updateCamera);
-	eye.add(cameraOptions.eye, 2).onChange(updateCamera);
+	eye.add(cameraOptions.eye, 0).onChange(updateCamera).listen();
+	eye.add(cameraOptions.eye, 1).onChange(updateCamera).listen();
+	eye.add(cameraOptions.eye, 2).onChange(updateCamera).listen();
 
 	const at = cameraGUI.addFolder("at");
-	at.add(cameraOptions.at, 0).onChange(updateCamera);
-	at.add(cameraOptions.at, 1).onChange(updateCamera);
-	at.add(cameraOptions.at, 2).onChange(updateCamera);
+	at.add(cameraOptions.at, 0).onChange(updateCamera).listen();
+	at.add(cameraOptions.at, 1).onChange(updateCamera).listen();
+	at.add(cameraOptions.at, 2).onChange(updateCamera).listen();
 
 	const up = cameraGUI.addFolder("up");
-	up.add(cameraOptions.up, 0).onChange(updateCamera);
-	up.add(cameraOptions.up, 1).onChange(updateCamera);
-	up.add(cameraOptions.up, 2).onChange(updateCamera);
+	up.add(cameraOptions.up, 0).onChange(updateCamera).listen();
+	up.add(cameraOptions.up, 1).onChange(updateCamera).listen();
+	up.add(cameraOptions.up, 2).onChange(updateCamera).listen();
 
 	const objectGui = new dat.GUI();
 	objectGui.add(objectOptions, "currentPrimitive", {'Sphere': 0, 'Cube': 1, 'Cylinder': 2,'Pyramid': 3, 'Torus': 4}).listen();
@@ -277,13 +285,13 @@ function setupGUI() {
 //=============================================================================
 
 function drawScene() {
-	gl.uniform3fv(uColor, flatten(vec3(0.85, 0.68, 0.81)))
+	gl.uniform3fv(uObjectColor, flatten(vec3(0.85, 0.68, 0.81)))
 	uploadModelView();
 	PRIMITIVES[objectOptions.currentPrimitive].draw(gl, objectProgram, generalOptions.wireframe ? gl.LINES : gl.TRIANGLES);
 
 	pushMatrix();
-		gl.uniform3fv(uColor, flatten(vec3(1, 0.68, 0.81)));
-		multTranslation([0, -0.5, 0]);
+		gl.uniform3fv(uObjectColor, flatten(vec3(1, 0.68, 0)));
+		multTranslation([0, -0.6, 0]);
 		multScale([3, 0.1, 3]);
 		uploadModelView();
 		CUBE.draw(gl, objectProgram, generalOptions.wireframe ? gl.LINES : gl.TRIANGLES);
@@ -291,10 +299,16 @@ function drawScene() {
 }
 
 function drawLights() {
+	gl.useProgram(lightProgram);
+
+	uploadProjection(lightProgram);
+
 	for(let i in lights) {
-		gl.uniform3fv(uColor, flatten(lights[i].Ia));
-		uploadModelView();
-		
+		gl.uniform3fv(uLightColor, flatten(lights[i].Ia));
+		multTranslation(lights[i].position);
+		multScale([0.1, 0.1, 0.1]);
+		uploadModelView(lightProgram);
+		SPHERE.draw(gl, lightProgram, gl.TRIANGLES);
 	}
 }
 
@@ -306,7 +320,7 @@ function render() {
 			
 	gl.useProgram(objectProgram);
 	
-	gl.uniformMatrix4fv(gl.getUniformLocation(objectProgram, "mProjection"), false, flatten(mProjection));
+	uploadProjection();
 	
 	loadMatrix(mView);
 
@@ -314,6 +328,7 @@ function render() {
 
 	gl.useProgram(lightProgram);
 
+	drawLights();
 }
 
 const urls = ["shader.vert", "objects.frag", "lights.frag"];
