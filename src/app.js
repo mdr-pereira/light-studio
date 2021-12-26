@@ -291,11 +291,10 @@ function drawScene() {
 }
 
 function drawLights() {
-		gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-		gl.enableVertexAttribArray(attribute);
-		gl.vertexAttribPointer(attribute, elemSize, gl.FLOAT, false, stride, offset);
-		gl.drawArrays(glMode, 0, amount)
-		gl.disableVertexAttribArray(attribute);
+	for(let i in lights) {
+		gl.uniform3fv(uColor, flatten(lights[i].Ia));
+		uploadModelView();
+		
 	}
 }
 
@@ -314,12 +313,6 @@ function render() {
 	drawScene();
 
 	gl.useProgram(lightProgram);
-
-	for(let i in lights) {
-		gl.uniform3fv(uColor, flatten(lights[i].Ia));
-		uploadModelView();
-		
-	}
 
 }
 
