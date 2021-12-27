@@ -35,6 +35,9 @@ let mView;
 let uObjectColor;
 let uLightColor;
 
+let uMaterialInfo;
+let uLights;
+
 /* Global Vars */
 let time = 0; // Global simulation time in days
 let speed = 1 / 60; // Speed (how many days added to time on each render pass
@@ -48,20 +51,21 @@ let materialOptions;
 //=========================================================================
 
 class Light {
-	constructor (position, Ia, Id, Is, isActive) {
+	constructor (position, Ia, Id, Is, isDirectional, isActive) {
 		this.position = position;
 
 		this.Ia = Ia;
 		this.Id = Id;
 		this.Is = Is;
 
+		this.isDirectional = isDirectional
 		this.isActive = isActive;
 	} 
 }
 
 class DirectionalLight extends Light {
 	constructor (position, Ia, Id, Is, origin, isActive) {
-		super(position, Ia, Id, Is, isActive);
+		super(position, Ia, Id, Is, false, isActive);
 
 		this.origin = origin;
 	}
@@ -100,8 +104,8 @@ function setup(shaders) {
 
 	materialOptions = {
 		materialAmb: vec3(1.0, 0.0, 0.0),
-		materialDif: vec3(1.0, 0.0, 0.0),
-		materialSpe: vec3(1.0, 1.0, 1.0),
+		materialDif: vec3(0.0, 1.0, 0.0),
+		materialSpe: vec3(1.0, 0.0, 1.0),
 		materialShy: 6.0
 	}
 
@@ -111,9 +115,29 @@ function setup(shaders) {
 	resize_canvas();
 	setupGUI();
 
+	//==========
 	// WebGl
 	uObjectColor = gl.getUniformLocation(objectProgram, "uColor");
 	uLightColor = gl.getUniformLocation(lightProgram, "uColor");
+
+	uMaterialInfo = {
+		materialAmb: gl.getUniformLocation(objectProgram, "uMaterial.Ka"),
+		materialDif: gl.getUniformLocation(objectProgram, "uMaterial.Kd"),
+		materialSpe: gl.getUniformLocation(objectProgram, "uMaterial.Ks"),
+		materialShy: gl.getUniformLocation(objectProgram, "uMaterial.Ka")
+	}
+
+	uLights = [];
+	for(let i = 0; i < MAX_LIGHTS; i++) {
+		uLights.push({
+			position: gl.getUniformLocation(objectProgram, "uLights[" + i + "].positions"),
+			Ia: gl.getUniformLocation(objectProgram, "uLights[" + i + "].Ia"),
+			Id: gl.getUniformLocation(objectProgram, "uLights[" + i + "].Id"),
+			Is: gl.getUniformLocation(objectProgram, "uLights[" + i + "].Is"),
+			isDirectional: gl.getUniformLocation(objectProgram, "uLights[" + i + "].isDirectional"),
+			isActive: gl.getUniformLocation(objectProgram, "uLights[" + i + "].isActive")
+		});
+	}
 
 	gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
@@ -164,7 +188,7 @@ function setup(shaders) {
 				break;
 				
 			case ' ':
-				if(event.ctrlKey) console.log("halleluya");
+				if(event.ctrlKey) 
 				addLight();
 				break;
 		}
@@ -200,7 +224,7 @@ function changeZBufferState(changeToDisabled = !objectOptions.zBufferEnabled) {
 }
 
 function addLight(isDirectional) {
-	const position = vec3(0.0, 2.0, 0.0);
+	const position = vec3(0.0, 3.0, 0.0);
 	const Ia = vec3(1.0, 0.0, 0.0);
 	const Id = vec3(0.0, 1.0, 0.0);
 	const Is = vec3(0.0, 0.0, 1.0);
@@ -285,7 +309,23 @@ function setupGUI() {
 //=============================================================================
 
 function drawScene() {
-	gl.uniform3fv(uObjectColor, flatten(vec3(0.85, 0.68, 0.81)))
+	gl.uniform3fv(uObjectColor, flatten(vec3(0.85, 0.68, 0.81)));
+
+	//TODO: switch out for cleaner loop, this is barely functional
+	gl.uniform3fv(uMaterialInfo.materialAmb, materialOptions.materialAmb);
+	gl.uniform3fv(uMaterialInfo.materialDif, materialOptions.materialDif);
+	gl.uniform3fv(uMaterialInfo.materialSpe, materialOptions.materialSpe);
+	gl.uniform1f(uMaterialInfo.materialShy, materialOptions.materialShy);
+
+	for(let i in lights) {
+		gl.uniform3fv(uLights[i].position, lights[i].position);
+		gl.uniform3fv(uLights[i].Ia, lights[i].Ia);
+		gl.uniform3fv(uLights[i].Id, lights[i].Id);
+		gl.uniform3fv(uLights[i].Is, lights[i].Is);
+		gl.uniform1i(uLights[i].isDirectional, lights[i].isDirectional);
+		gl.uniform1i(uLights[i].isActive, lights[i].isActive);
+	}
+
 	uploadModelView();
 	PRIMITIVES[objectOptions.currentPrimitive].draw(gl, objectProgram, generalOptions.wireframe ? gl.LINES : gl.TRIANGLES);
 
@@ -300,15 +340,21 @@ function drawScene() {
 
 function drawLights() {
 	gl.useProgram(lightProgram);
-
 	uploadProjection(lightProgram);
 
 	for(let i in lights) {
-		gl.uniform3fv(uLightColor, flatten(lights[i].Ia));
-		multTranslation(lights[i].position);
-		multScale([0.1, 0.1, 0.1]);
-		uploadModelView(lightProgram);
-		SPHERE.draw(gl, lightProgram, gl.TRIANGLES);
+		pushMatrix();
+
+		if(lights[i].isActive) { 
+			gl.uniform3fv(uLightColor, flatten(lights[i].Ia));
+
+			multTranslation(lights[i].position);
+			multScale([0.1, 0.1, 0.1]);
+			uploadModelView(lightProgram);
+
+			SPHERE.draw(gl, lightProgram, gl.TRIANGLES);
+		}
+		popMatrix();
 	}
 }
 

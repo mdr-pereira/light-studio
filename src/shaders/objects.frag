@@ -3,7 +3,7 @@ precision highp float;
 const int MAX_LIGHTS = 8;
 
 struct LightInfo {
-    vec3 pos;
+    vec3 position;
     vec3 Ia;
     vec3 Id;
     vec3 Is;
@@ -28,6 +28,7 @@ varying vec3 fColor;
 
 void main() {
 	gl_FragColor = vec4(fColor, 1.0);
+    
 }
 
 

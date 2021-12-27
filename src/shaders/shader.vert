@@ -12,6 +12,5 @@ varying vec3 fNormal;
 void main() {
     gl_Position = mProjection * mModelView * vPosition;
     fNormal = vNormal;
-    vec3 x = vNormal;
     fColor = uColor;
 }
