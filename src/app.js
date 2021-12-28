@@ -1,5 +1,5 @@
 import { buildProgramFromSources, loadShadersFromURLS, setupWebGL } from "../libs/utils.js";
-import { ortho, perspective, lookAt, flatten, vec3, vec4, inverse, mult, cross, dot } from "../libs/MV.js";
+import { ortho, perspective, lookAt, flatten, vec3, vec4, inverse, mult, cross, dot, normalMatrix } from "../libs/MV.js";
 import { modelView, loadMatrix, multMatrix, multRotationY, multScale, pushMatrix, popMatrix, multTranslation, multRotationX, multRotationZ, loadIdentity } from "../libs/stack.js";
 
 import * as SPHERE from "../libs/sphere.js";
@@ -124,7 +124,7 @@ function setup(shaders) {
 		materialAmb: gl.getUniformLocation(objectProgram, "uMaterial.Ka"),
 		materialDif: gl.getUniformLocation(objectProgram, "uMaterial.Kd"),
 		materialSpe: gl.getUniformLocation(objectProgram, "uMaterial.Ks"),
-		materialShy: gl.getUniformLocation(objectProgram, "uMaterial.Ka")
+		materialShy: gl.getUniformLocation(objectProgram, "uMaterial.shininess")
 	}
 
 	uLights = [];
@@ -310,6 +310,14 @@ function setupGUI() {
 //=============================================================================
 
 function drawScene() {
+	const umNormals = gl.getUniformLocation(objectProgram, "mNormals");
+	const umViewNormals = gl.getUniformLocation(objectProgram, "mViewNormals");
+	const umView = gl.getUniformLocation(objectProgram, "mView");
+
+	gl.uniformMatrix4fv(umNormals, gl.GL_FALSE, flatten(normalMatrix(modelView())));
+	gl.uniformMatrix4fv(umViewNormals, gl.GL_FALSE, flatten(normalMatrix(mView)));
+	gl.uniformMatrix4fv(umView, gl.GL_FALSE, flatten(mView));
+
 	gl.uniform3fv(uObjectColor, flatten(vec3(0.85, 0.68, 0.81)));
 
 	//TODO: switch out for cleaner loop, this is barely functional
