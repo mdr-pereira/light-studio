@@ -77,7 +77,7 @@ function setup(shaders) {
   // Setup
   let canvas = document.getElementById("gl-canvas");
 
-	//GL focused setup
+	// GL focused setup
   gl = setupWebGL(canvas);
   objectProgram = buildProgramFromSources(gl, shaders["shader.vert"], shaders["objects.frag"]);
 	lightProgram = buildProgramFromSources(gl, shaders["shader.vert"], shaders["lights.frag"]);
@@ -111,7 +111,7 @@ function setup(shaders) {
 
 	lights = [];
 
-	//Setup calls
+	// Setup calls
 	resize_canvas();
 	setupGUI();
 
@@ -128,7 +128,7 @@ function setup(shaders) {
 	}
 
 	uLights = [];
-	for(let i = 0; i < MAX_LIGHTS; i++) {
+	for (let i = 0; i < MAX_LIGHTS; i++) {
 		uLights.push({
 			position: gl.getUniformLocation(objectProgram, "uLights[" + i + "].positions"),
 			Ia: gl.getUniformLocation(objectProgram, "uLights[" + i + "].Ia"),
@@ -178,7 +178,7 @@ function setup(shaders) {
 	window.addEventListener("wheel", zoom);
 
 	window.addEventListener('keydown', (event) => {
-		switch(event.key) {
+		switch (event.key) {
 			case '+':
 				changePrimitive();
 				break;
@@ -188,8 +188,9 @@ function setup(shaders) {
 				break;
 				
 			case ' ':
-				if(event.ctrlKey) 
-				addLight();
+				if (event.ctrlKey) {
+					addLight();
+				}
 				break;
 		}
 	})
@@ -202,7 +203,7 @@ function setup(shaders) {
 function zoom(event) {
 	let newFovy = cameraOptions.fovy + event.deltaY * 0.01;
 
-	if(newFovy >= MIN_FOVY && newFovy <= MAX_FOVY) {
+	if (newFovy >= MIN_FOVY && newFovy <= MAX_FOVY) {
 		cameraOptions.fovy = newFovy;
 	}
 
@@ -214,7 +215,7 @@ function changePrimitive(changeTo = (++objectOptions.currentPrimitive) % PRIMITI
 }
 
 function changeZBufferState(changeToDisabled = !objectOptions.zBufferEnabled) {
-	if(changeToDisabled) {
+	if (changeToDisabled) {
 		gl.disable(gl.DEPTH_TEST);
 	} else {
 		gl.enable(gl.DEPTH_TEST);
@@ -229,8 +230,8 @@ function addLight(isDirectional) {
 	const Id = vec3(0.0, 1.0, 0.0);
 	const Is = vec3(0.0, 0.0, 1.0);
 
-	if(lights.length < MAX_LIGHTS) {
-		if(!isDirectional) {
+	if (lights.length < MAX_LIGHTS) {
+		if (!isDirectional) {
 			lights.push(new Light(position, Ia, Id, Is, true));	
 		} else {
 			const from = vec3(0.0, 1.0, 0.0);
@@ -262,7 +263,7 @@ function updatePerspective() {
  * Updates the view matrix with current camera data.
  */
 function updateCamera() {
-	mView = lookAt(cameraOptions.eye, cameraOptions.at, cameraOptions.up);
+	mView = lookAt(cameraOptions.eye, cameraOptions.at, cameraOptions.up); // TODO: Enviar isto para o Vert.
 }
 
 /**
@@ -317,7 +318,7 @@ function drawScene() {
 	gl.uniform3fv(uMaterialInfo.materialSpe, materialOptions.materialSpe);
 	gl.uniform1f(uMaterialInfo.materialShy, materialOptions.materialShy);
 
-	for(let i in lights) {
+	for (let i in lights) {
 		gl.uniform3fv(uLights[i].position, lights[i].position);
 		gl.uniform3fv(uLights[i].Ia, lights[i].Ia);
 		gl.uniform3fv(uLights[i].Id, lights[i].Id);
@@ -342,10 +343,10 @@ function drawLights() {
 	gl.useProgram(lightProgram);
 	uploadProjection(lightProgram);
 
-	for(let i in lights) {
+	for (let i in lights) {
 		pushMatrix();
 
-		if(lights[i].isActive) { 
+		if (lights[i].isActive) { 
 			gl.uniform3fv(uLightColor, flatten(lights[i].Ia));
 
 			multTranslation(lights[i].position);
