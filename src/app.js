@@ -37,6 +37,7 @@ let uLightColor;
 
 let uMaterialInfo;
 let uLights;
+let uNLights;
 
 /* Global Vars */
 let time = 0; // Global simulation time in days
@@ -79,8 +80,8 @@ function setup(shaders) {
 
 	// GL focused setup
   gl = setupWebGL(canvas);
-  objectProgram = buildProgramFromSources(gl, shaders["shader.vert"], shaders["objects.frag"]);
-	lightProgram = buildProgramFromSources(gl, shaders["shader.vert"], shaders["lights.frag"]);
+  objectProgram = buildProgramFromSources(gl, shaders["objects.vert"], shaders["objects.frag"]);
+	lightProgram = buildProgramFromSources(gl, shaders["lights.vert"], shaders["lights.frag"]);
 
   cameraOptions = {
     eye: vec3(0, 0, -5),
@@ -119,6 +120,7 @@ function setup(shaders) {
 	// WebGl
 	uObjectColor = gl.getUniformLocation(objectProgram, "uColor");
 	uLightColor = gl.getUniformLocation(lightProgram, "uColor");
+	uNLights = gl.getUniformLocation(objectProgram, "uNLights");
 
 	uMaterialInfo = {
 		materialAmb: gl.getUniformLocation(objectProgram, "uMaterial.Ka"),
@@ -130,12 +132,12 @@ function setup(shaders) {
 	uLights = [];
 	for (let i = 0; i < MAX_LIGHTS; i++) {
 		uLights.push({
-			position: gl.getUniformLocation(objectProgram, "uLights[" + i + "].positions"),
-			Ia: gl.getUniformLocation(objectProgram, "uLights[" + i + "].Ia"),
-			Id: gl.getUniformLocation(objectProgram, "uLights[" + i + "].Id"),
-			Is: gl.getUniformLocation(objectProgram, "uLights[" + i + "].Is"),
-			isDirectional: gl.getUniformLocation(objectProgram, "uLights[" + i + "].isDirectional"),
-			isActive: gl.getUniformLocation(objectProgram, "uLights[" + i + "].isActive")
+			position: gl.getUniformLocation(objectProgram, "uLight[" + i + "].position"),
+			Ia: gl.getUniformLocation(objectProgram, "uLight[" + i + "].Ia"),
+			Id: gl.getUniformLocation(objectProgram, "uLight[" + i + "].Id"),
+			Is: gl.getUniformLocation(objectProgram, "uLight[" + i + "].Is"),
+			isDirectional: gl.getUniformLocation(objectProgram, "uLight[" + i + "].isDirectional"),
+			isActive: gl.getUniformLocation(objectProgram, "uLight[" + i + "].isActive")
 		});
 	}
 
@@ -148,14 +150,13 @@ function setup(shaders) {
 	PYRAMID.init(gl);
 	TORUS.init(gl);
 	
-
 	changeZBufferState(false);
 
 	window.requestAnimationFrame(render);
 
 	//Temporary lights
-	const RED = vec3(1.0, 0.0, 0.0);
-	lights.push(new Light(vec3(0.0, 2.0, 0.0), RED, RED, RED, true));
+	const RED = vec3(1.0, 1.0, 1.0);
+	lights.push(new Light(vec3(0.0, 2.0, 0.0), RED, RED, RED, true, true));
 
   function resize_canvas(event) {
     canvas.width = window.innerWidth;
@@ -314,6 +315,7 @@ function drawScene() {
 	const umViewNormals = gl.getUniformLocation(objectProgram, "mViewNormals");
 	const umView = gl.getUniformLocation(objectProgram, "mView");
 
+	gl.uniform1i(uNLights, gl.GL_FALSE, lights.length);
 	gl.uniformMatrix4fv(umNormals, gl.GL_FALSE, flatten(normalMatrix(modelView())));
 	gl.uniformMatrix4fv(umViewNormals, gl.GL_FALSE, flatten(normalMatrix(mView)));
 	gl.uniformMatrix4fv(umView, gl.GL_FALSE, flatten(mView));
@@ -386,5 +388,5 @@ function render() {
 	drawLights();
 }
 
-const urls = ["shader.vert", "objects.frag", "lights.frag"];
+const urls = ["objects.vert", "objects.frag", "lights.frag", "lights.vert"];
 loadShadersFromURLS(urls).then(shaders => setup(shaders))

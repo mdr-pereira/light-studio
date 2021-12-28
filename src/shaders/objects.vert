@@ -9,9 +9,6 @@ uniform mat4 mView; // view transformation for points TODO.
 attribute vec4 vPosition;
 attribute vec3 vNormal;
 
-uniform vec3 uColor;
-
-varying vec3 fColor;
 varying vec3 fNormal;
 
 varying vec3 fPosC;
@@ -20,7 +17,6 @@ varying mat4 fMView;
 
 void main() {
 	gl_Position = mProjection * mModelView * vPosition;
-	fColor = uColor;
 
 	fNormal = (mNormals * vec4(vNormal, 1.0)).xyz;
 	fPosC = (mModelView * vPosition).xyz;

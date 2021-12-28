@@ -24,8 +24,6 @@ uniform LightInfo uLight[MAX_LIGHTS];
 uniform MaterialInfo uMaterial;  
 
 varying vec3 fNormal;
-varying vec3 fColor;
-varying vec3 fPosition; 
 
 varying vec3 fPosC;
 varying mat4 fMViewNormals;
