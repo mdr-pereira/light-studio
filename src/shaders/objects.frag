@@ -44,7 +44,7 @@ void main() {
 
 		vec3 light;
 
-		if (!uLight[i].isDirectional) {
+		if (uLight[i].isDirectional) {
 			light = normalize((fMViewNormals * vec4(uLight[i].position, 0.0)).xyz);
 		} else {
 			light = normalize((fMView * vec4(uLight[i].position, 0.0)).xyz - fPosC);
@@ -62,5 +62,9 @@ void main() {
 		specular += specularFactor * specularColor;
 	}
 
-	gl_FragColor = vec4(ambientColor + diffuse + specular, 1.0);
+	if (uNLights == 0) {
+		gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+	} else {
+		gl_FragColor = vec4(ambientColor + diffuse + specular, 1.0);
+	}
 }

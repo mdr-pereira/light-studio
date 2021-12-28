@@ -104,10 +104,10 @@ function setup(shaders) {
 	}
 
 	materialOptions = {
-		materialAmb: vec3(1.0, 0.0, 0.0),
-		materialDif: vec3(0.0, 1.0, 0.0),
-		materialSpe: vec3(1.0, 0.0, 1.0),
-		materialShy: 6.0
+		materialAmb: vec3(0.0, 0.098, 0.0),
+		materialDif: vec3(0.3725, 0.3725, 0.3725),
+		materialSpe: vec3(0.3725, 0.3725, 0.3725),
+		materialShy: 39.0
 	}
 
 	lights = [];
@@ -155,8 +155,11 @@ function setup(shaders) {
 	window.requestAnimationFrame(render);
 
 	//Temporary lights
-	const RED = vec3(1.0, 1.0, 1.0);
-	lights.push(new Light(vec3(0.0, 2.0, 0.0), RED, RED, RED, true, true));
+	const RED = vec3(75/255, 75/255, 75/255);
+	lights.push(new Light(vec3(0.0, 1.5, 0.0), RED, vec3(0, 9/255, 1.0), vec3(1.0, 1.0, 1.0), true, true));
+
+	lights.push(new Light(vec3(0.0, 1.1, 2.0), RED, vec3(0, 9/255, 1.0), vec3(1.0, 1.0, 1.0), true, true));
+
 
   function resize_canvas(event) {
     canvas.width = window.innerWidth;
@@ -315,7 +318,7 @@ function drawScene() {
 	const umViewNormals = gl.getUniformLocation(objectProgram, "mViewNormals");
 	const umView = gl.getUniformLocation(objectProgram, "mView");
 
-	gl.uniform1i(uNLights, gl.GL_FALSE, lights.length);
+	gl.uniform1i(uNLights, lights.length);
 	gl.uniformMatrix4fv(umNormals, gl.GL_FALSE, flatten(normalMatrix(modelView())));
 	gl.uniformMatrix4fv(umViewNormals, gl.GL_FALSE, flatten(normalMatrix(mView)));
 	gl.uniformMatrix4fv(umView, gl.GL_FALSE, flatten(mView));
