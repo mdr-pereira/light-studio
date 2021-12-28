@@ -6,11 +6,6 @@ uniform mat4 mViewNormals; // normalMatrix(mView) TODO.
 uniform mat4 mView; // view transformation for points TODO.
 // TODOs acima: enviar estas cenas para aqui.
 
-uniform vec3 uMaterialAmb; // ambient
-uniform vec3 uMaterialDif; // difuse
-uniform vec3 uMaterialSpe; // specular
-uniform vec3 uMaterialShy; // shininess
-
 attribute vec4 vPosition;
 attribute vec3 vNormal;
 
