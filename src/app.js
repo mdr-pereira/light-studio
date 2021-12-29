@@ -260,8 +260,8 @@ function addLightGUI() {
 	light.add(lights[lights.length - 1].position, "2").name("posZ");
 
 	light.addColor(lights[lights.length - 1], "Ia").name("Ia");
-	light.addColor(lights[lights.length - 1], "Id").name("Ia");
-	light.addColor(lights[lights.length - 1], "Is").name("Ia"); 
+	light.addColor(lights[lights.length - 1], "Id").name("Id");
+	light.addColor(lights[lights.length - 1], "Is").name("Is"); 
 
 	light.add(lights[lights.length - 1], "isDirectional").name("isDirectional");
 	light.add(lights[lights.length - 1], "isActive").name("isActive");
