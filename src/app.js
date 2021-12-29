@@ -98,15 +98,16 @@ function setup(shaders) {
 
 	objectOptions = {
 		currentPrimitive: 0,
-		zBufferEnabled: true
-	}
+		zBufferEnabled: true,
+		backFaceCullingEnabled: true,
+	};
 
 	materialOptions = {
 		materialAmb: vec3(0.0, 0.68 * 255, 0.0),
 		materialDif: vec3(0.3725 * 255, 0.3725 * 255, 0.3725 * 255),
 		materialSpe: vec3(0.3725 * 255, 0.3725 * 255, 0.3725 * 255),
 		materialShy: 39.0
-	}
+	};
 
 	lights = [];
 
@@ -148,7 +149,9 @@ function setup(shaders) {
 	PYRAMID.init(gl);
 	TORUS.init(gl);
 	
-	changeZBufferState(false);
+	gl.enable(gl.DEPTH_TEST);
+	gl.enable(gl.CULL_FACE);
+	gl.cullFace(gl.BACK);
 
 	window.requestAnimationFrame(render);
 
@@ -173,6 +176,8 @@ function setup(shaders) {
 	addLight(vec3(0.0, 1.1, 2.0), RED, RED, RED, false, true);
 	
 	//addLight(vec3(0.0, 1.1, 2.0), RED, vec3(0, 9/255, 1.0), vec3(1.0, 1.0, 1.0), true);
+
+	console.log(objectOptions);
 
 	//Event listeners
 
@@ -218,14 +223,26 @@ function changePrimitive(changeTo = (++objectOptions.currentPrimitive) % PRIMITI
 	objectOptions.currentPrimitive = changeTo;
 }
 
-function changeZBufferState(changeToDisabled = !objectOptions.zBufferEnabled) {
-	if (changeToDisabled) {
+function changeZBufferState(changeToEnabled = !objectOptions.zBufferEnabled) {
+	if (!changeToEnabled) {
 		gl.disable(gl.DEPTH_TEST);
 	} else {
 		gl.enable(gl.DEPTH_TEST);
 	}
 
-	objectOptions.zBufferEnabled = changeToDisabled;
+	objectOptions.zBufferEnabled = changeToEnabled;
+	console.log(objectOptions);
+}
+
+function changeBackFaceCullingState(changeToEnabled = !objectOptions.backFaceCullingEnabled) {
+	if (!changeToEnabled) {
+		gl.disable(gl.CULL_FACE);
+	} else {
+		gl.enable(gl.CULL_FACE);
+	}
+
+	objectOptions.backFaceCullingEnabled = changeToEnabled;
+	console.log(objectOptions);
 }
 
 function addLight(position, Ia, Id, Is, isDirectional, isActive) {
@@ -277,7 +294,6 @@ function updateCamera() {
 function setupGUI() {
 	const optionsGUI = gui.addFolder("options");
 	optionsGUI.add(generalOptions, "wireframe").listen();
-
 	optionsGUI.add(generalOptions, "normals").listen();
 
 	const cameraGUI = gui.addFolder("camera");
@@ -301,6 +317,8 @@ function setupGUI() {
 	up.add(cameraOptions.up, 2).onChange(updateCamera).listen();
 
 	objectGui.add(objectOptions, "currentPrimitive", {'Sphere': 0, 'Cube': 1, 'Cylinder': 2,'Pyramid': 3, 'Torus': 4}).listen();
+	objectGui.add(objectOptions, "zBufferEnabled").listen().onChange(changeZBufferState).name("zBuffer");
+	objectGui.add(objectOptions, "backFaceCullingEnabled").listen().onChange(changeBackFaceCullingState).name("backfaceCulling")
 
 	const material = objectGui.addFolder("material");
 	material.addColor(materialOptions, 'materialAmb').name('Ka');
@@ -322,7 +340,6 @@ function drawScene() {
 	gl.uniformMatrix4fv(umView, gl.GL_FALSE, flatten(mView));
 
 	gl.uniform3fv(uObjectColor, flatten(vec3(0.85, 0.68, 0.81)));
-
 
 	//TODO: switch out for cleaner loop, this is barely functional
 	gl.uniform3fv(uMaterialInfo.materialAmb, materialOptions.materialAmb.map((x) => {return x / 255.0}));
