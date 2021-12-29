@@ -455,7 +455,7 @@ function drawLights() {
 	gl.useProgram(lightProgram);
 	uploadProjection(lightProgram);
 
-	if(!generalOptions.lights) return;
+	if (!generalOptions.lights) return;
 
 	for (let i in lights) {
 		pushMatrix();
