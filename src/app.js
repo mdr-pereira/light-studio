@@ -501,7 +501,7 @@ function render() {
 	drawLights();
 
 	if (!startAnimationFinished) {
-		cameraOptions.eye[1] -= 0.05;
+		cameraOptions.eye[1] -= 0.08;
 		updateCamera();
 
 		if (cameraOptions.eye[1] < 3.5) {
