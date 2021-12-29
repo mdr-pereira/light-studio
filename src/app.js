@@ -384,7 +384,7 @@ function drawLights() {
 		pushMatrix();
 
 		if (lights[i].isActive) { 
-			gl.uniform3fv(uLightColor, flatten(lights[i].Ia));
+			gl.uniform3fv(uLightColor, flatten(lights[i].Id.map((x) => {return x / 255.0})));
 
 			multTranslation(lights[i].position);
 			multScale([0.08, 0.08, 0.08]);
