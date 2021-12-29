@@ -17,8 +17,8 @@ let normals_buffer;
 let faces_buffer;
 let edges_buffer;
 
-var torus_PPD=30;
-var torus_DISKS=30;
+var torus_PPD=60;
+var torus_DISKS=60;
 var torus_DISK_RADIUS = 0.2;
 var torus_RADIUS = 0.5;
 

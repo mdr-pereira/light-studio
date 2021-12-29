@@ -17,8 +17,8 @@
  var sphere_faces_buffer;
  var sphere_edges_buffer;
  
- var SPHERE_LATS=20;
- var SPHERE_LONS=30;
+ var SPHERE_LATS=50;
+ var SPHERE_LONS=50;
  
  function init(gl, nlat=SPHERE_LATS, nlon=SPHERE_LONS) {
      _build(nlat, nlon);

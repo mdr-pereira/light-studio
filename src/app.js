@@ -156,9 +156,9 @@ function setup(shaders) {
 
 	//Temporary lights
 	const RED = vec3(75/255, 75/255, 75/255);
-	lights.push(new Light(vec3(0.0, 1.5, 0.0), RED, vec3(0, 9/255, 1.0), vec3(1.0, 1.0, 1.0), true, true));
+	//lights.push(new Light(vec3(0.0, 1.5, 0.0), RED, vec3(0, 9/255, 1.0), vec3(1.0, 1.0, 1.0), true, true));
 
-	lights.push(new Light(vec3(0.0, 1.1, 2.0), RED, vec3(0, 9/255, 1.0), vec3(1.0, 1.0, 1.0), true, true));
+	lights.push(new Light(vec3(0.0, 1.1, 2.0), RED, vec3(0, 9/255, 1.0), vec3(1.0, 1.0, 1.0), false, true));
 
 
   function resize_canvas(event) {
