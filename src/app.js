@@ -167,7 +167,7 @@ function setup(shaders) {
 
 	//==========
 
-	window.requestAnimationFrame(render);
+	window.requestAnimationFrame(renderStartAnimation);
 
 	/**
 	 * Deals with the change in perspective caused by a canvas resize event, in the case that the user changes the overall window size.
@@ -222,6 +222,8 @@ function setup(shaders) {
 				} else {
 					addLight(DEFAULT_POSITION, DEFAULT_COLOR, DEFAULT_COLOR, DEFAULT_COLOR, false);
 				}
+
+				getRandomColor();
 				break;
 		}
 	})
@@ -232,7 +234,7 @@ function setup(shaders) {
 //Auxiliary functions
 
 function getRandomColor() {
-	return DEFAULT_COLORS[Math.random() * (DEFAULT_COLORS.length)];
+	return(DEFAULT_COLORS[Math.floor(Math.random() * (DEFAULT_COLORS.length))]);
 }
 
 /**
@@ -276,7 +278,6 @@ function changeZBufferState(changeToEnabled = !objectOptions.zBufferEnabled) {
 	}
 
 	objectOptions.zBufferEnabled = changeToEnabled;
-	console.log(objectOptions);
 }
 
 /**
@@ -294,7 +295,6 @@ function changeBackFaceCullingState(changeToEnabled = !objectOptions.backFaceCul
 	}
 
 	objectOptions.backFaceCullingEnabled = changeToEnabled;
-	console.log(objectOptions);
 }
 
 /**
@@ -482,9 +482,18 @@ function drawLights() {
 	}
 }
 
+function renderStartAnimation() {
+	if (cameraOptions.eye[1] < 3.5) startAnimationFinished = true;
+
+	cameraOptions.eye[1] -= 0.08;
+	updateCamera();
+	
+	render();
+}
+
 function render() {
 	if (animation) time += speed;
-	window.requestAnimationFrame(render);
+	window.requestAnimationFrame(startAnimationFinished ? render : renderStartAnimation);
 
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 			
@@ -499,15 +508,6 @@ function render() {
 	gl.useProgram(lightProgram);
 
 	drawLights();
-
-	if (!startAnimationFinished) {
-		cameraOptions.eye[1] -= 0.08;
-		updateCamera();
-
-		if (cameraOptions.eye[1] < 3.5) {
-			startAnimationFinished = true;
-		}
-	}
 }
 
 const urls = ["objects.vert", "objects.frag", "lights.frag", "lights.vert"];
