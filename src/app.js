@@ -107,7 +107,7 @@ function setup(shaders) {
 		materialAmb: vec3(0.0, 0.0, 0.0),
 		materialDif: vec3(95, 95, 95),
 		materialSpe: vec3(95, 95, 95),
-		materialShy: 40.0
+		materialShy: 5.0
 	};
 
 	lights = [];
