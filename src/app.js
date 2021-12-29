@@ -188,6 +188,10 @@ function setup(shaders) {
 			case 'b':
 				changeZBufferState();
 				break;
+
+			case 'c':
+				changeBackFaceCullingState();
+				break;
 				
 			case ' ':
 				if (event.ctrlKey) {
@@ -250,9 +254,9 @@ function addLight(position, Ia, Id, Is, isDirectional, isActive) {
 
 function addLightGUI() {
 	const light = lightsGUI.addFolder("light " + lights.length);
-	light.add(lights[lights.length - 1].position, "0").name("posX").step(0.1);
-	light.add(lights[lights.length - 1].position, "1").name("posY").step(0.1);
-	light.add(lights[lights.length - 1].position, "2").name("posZ").step(0.1);
+	light.add(lights[lights.length - 1].position, "0").name("X").step(0.1);
+	light.add(lights[lights.length - 1].position, "1").name("Y").step(0.1);
+	light.add(lights[lights.length - 1].position, "2").name("Z").step(0.1);
 
 	light.addColor(lights[lights.length - 1], "Ia").name("Ia");
 	light.addColor(lights[lights.length - 1], "Id").name("Id");
