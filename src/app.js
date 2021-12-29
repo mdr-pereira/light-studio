@@ -49,6 +49,12 @@ let lights;
 let objectOptions;
 let materialOptions;
 
+/* Some GUI objects need to be global */
+
+const gui = new dat.GUI();
+const objectGui = new dat.GUI();
+const lightsGUI = gui.addFolder("lights");
+
 //=========================================================================
 
 class Light {
@@ -154,13 +160,6 @@ function setup(shaders) {
 
 	window.requestAnimationFrame(render);
 
-	//Temporary lights
-	const RED = vec3(75/255, 75/255, 75/255);
-	//lights.push(new Light(vec3(0.0, 1.5, 0.0), RED, vec3(0, 9/255, 1.0), vec3(1.0, 1.0, 1.0), true, true));
-
-	lights.push(new Light(vec3(0.0, 1.1, 2.0), RED, vec3(0, 9/255, 1.0), vec3(1.0, 1.0, 1.0), false, true));
-
-
   function resize_canvas(event) {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -175,6 +174,13 @@ function setup(shaders) {
 
 		updateCamera();
   }
+
+	
+	//Temporary lights
+	const RED = vec3(75/255, 75/255, 75/255);
+	addLight(vec3(0.0, 1.1, 2.0), RED, vec3(0, 9/255, 1.0), vec3(1.0, 1.0, 1.0), true);
+	//addLight(vec3(0.0, 1.1, 2.0), RED, vec3(0, 9/255, 1.0), vec3(1.0, 1.0, 1.0), true);
+	//addLight(vec3(0.0, 1.1, 2.0), RED, vec3(0, 9/255, 1.0), vec3(1.0, 1.0, 1.0), true);
 
 	//Event listeners
 
@@ -192,9 +198,9 @@ function setup(shaders) {
 				break;
 				
 			case ' ':
-				if (event.ctrlKey) {
-					addLight();
-				}
+				//if (event.ctrlKey) {
+					//addLight();
+				//}
 				break;
 		}
 	})
@@ -228,12 +234,7 @@ function changeZBufferState(changeToDisabled = !objectOptions.zBufferEnabled) {
 	objectOptions.zBufferEnabled = changeToDisabled;
 }
 
-function addLight(isDirectional) {
-	const position = vec3(0.0, 3.0, 0.0);
-	const Ia = vec3(1.0, 0.0, 0.0);
-	const Id = vec3(0.0, 1.0, 0.0);
-	const Is = vec3(0.0, 0.0, 1.0);
-
+function addLight(position, Ia, Id, Is, isDirectional) {
 	if (lights.length < MAX_LIGHTS) {
 		if (!isDirectional) {
 			lights.push(new Light(position, Ia, Id, Is, true));	
@@ -243,6 +244,18 @@ function addLight(isDirectional) {
 			lights.push(new DirectionalLight(position, Ia, Id, Is, from, true));
 		}
 	}
+
+	const light = lightsGUI.addFolder("light " + lights.length);
+	light.add(lights[lights.length - 1].position, "0").name("posX");
+	light.add(lights[lights.length - 1].position, "1").name("posY");
+	light.add(lights[lights.length - 1].position, "2").name("posZ");
+
+	light.addColor(lights[lights.length - 1], "Ia").name("Ia");
+	light.addColor(lights[lights.length - 1], "Id").name("Ia");
+	light.addColor(lights[lights.length - 1], "Is").name("Ia"); 
+	
+	light.add(lights[lights.length - 1], "isDirectional").name("isDirectional");
+	light.add(lights[lights.length - 1], "isActive").name("isActive");
 }
 
 //=============================================================================
@@ -274,8 +287,6 @@ function updateCamera() {
  * Setup related to the graphical user interface.
  */
 function setupGUI() {
-	const gui = new dat.GUI();
-
 	const optionsGUI = gui.addFolder("options");
 	optionsGUI.add(generalOptions, "wireframe").listen();
 
@@ -301,7 +312,6 @@ function setupGUI() {
 	up.add(cameraOptions.up, 1).onChange(updateCamera).listen();
 	up.add(cameraOptions.up, 2).onChange(updateCamera).listen();
 
-	const objectGui = new dat.GUI();
 	objectGui.add(objectOptions, "currentPrimitive", {'Sphere': 0, 'Cube': 1, 'Cylinder': 2,'Pyramid': 3, 'Torus': 4}).listen();
 
 	const material = objectGui.addFolder("material");
@@ -363,7 +373,7 @@ function drawLights() {
 			gl.uniform3fv(uLightColor, flatten(lights[i].Ia));
 
 			multTranslation(lights[i].position);
-			multScale([0.1, 0.1, 0.1]);
+			multScale([0.08, 0.08, 0.08]);
 			uploadModelView(lightProgram);
 
 			SPHERE.draw(gl, lightProgram, gl.TRIANGLES);
