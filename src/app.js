@@ -82,7 +82,7 @@ function setup(shaders) {
 	lightProgram = buildProgramFromSources(gl, shaders["lights.vert"], shaders["lights.frag"]);
 
   cameraOptions = {
-    eye: vec3(0, 0, 5),
+    eye: vec3(0, 3.5, 5),
     at: vec3(0, 0, 0),
     up: vec3(0, 1, 0),
     fovy: 45,
@@ -98,16 +98,16 @@ function setup(shaders) {
   };
 
 	objectOptions = {
-		currentPrimitive: 0,
+		currentPrimitive: 4,
 		zBufferEnabled: true,
 		backFaceCullingEnabled: true,
 	};
 
 	materialOptions = {
-		materialAmb: vec3(0.0, 0.68 * 255, 0.0),
-		materialDif: vec3(0.3725 * 255, 0.3725 * 255, 0.3725 * 255),
-		materialSpe: vec3(0.3725 * 255, 0.3725 * 255, 0.3725 * 255),
-		materialShy: 39.0
+		materialAmb: vec3(0.0, 0.0, 0.0),
+		materialDif: vec3(95, 95, 95),
+		materialSpe: vec3(95, 95, 95),
+		materialShy: 40.0
 	};
 
 	lights = [];
@@ -171,9 +171,11 @@ function setup(shaders) {
   }
 
 	
-	//Temporary lights
-	const RED = vec3(75, 75, 75);
-	addLight(vec3(0.0, 1.1, 2.0), RED, RED, RED, false, true);
+	// Default lights
+	const DEFAULT_COLOR = vec3(120, 120 , );
+	addLight(vec3(0.0, 0.0, 1.0), vec3(255, 0, 0), vec3(84, 21, 255), vec3(255, 0, 0), false, true);
+	addLight(vec3(0, 0, 0), vec3(255, 0, 0), vec3(0, 255, 193), vec3(255, 245, 88), false, true);
+	addLight(vec3(0, 3, 0), vec3(0, 0, 0), vec3(255, 0, 189), vec3(0, 0, 0), true, true);
 
 	//Event listeners
 	window.addEventListener("resize", resize_canvas)
@@ -195,9 +197,9 @@ function setup(shaders) {
 				
 			case ' ':
 				if (event.ctrlKey) {
-					addLight(vec3(0.0, 1.1, 2.0), RED, vec3(0, 9, 1.0), vec3(1.0, 1.0, 1.0), true, true);
+					addLight(vec3(0.0, 1.1, 2.0), DEFAULT_COLOR, vec3(0, 9, 1.0), vec3(1.0, 1.0, 1.0), true, true);
 				} else {
-					addLight(vec3(0.0, 1.1, 2.0), RED, vec3(0, 9, 1.0), vec3(1.0, 1.0, 1.0), false, true);
+					addLight(vec3(0.0, 1.1, 2.0), DEFAULT_COLOR, vec3(0, 9, 1.0), vec3(1.0, 1.0, 1.0), false, true);
 				}
 				break;
 		}
@@ -387,7 +389,7 @@ function drawLights() {
 			multScale([0.05, 0.05, 0.05]);
 			uploadModelView(lightProgram);
 
-			SPHERE.draw(gl, lightProgram, gl.TRIANGLES);
+			 SPHERE.draw(gl, lightProgram, gl.TRIANGLES);
 		}
 		popMatrix();
 	}
