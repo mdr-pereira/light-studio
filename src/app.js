@@ -82,7 +82,7 @@ function setup(shaders) {
 	lightProgram = buildProgramFromSources(gl, shaders["lights.vert"], shaders["lights.frag"]);
 
   cameraOptions = {
-    eye: vec3(0, 0, -5),
+    eye: vec3(0, 0, 5),
     at: vec3(0, 0, 0),
     up: vec3(0, 1, 0),
     fovy: 45,
@@ -117,7 +117,6 @@ function setup(shaders) {
 
 	//==========
 	// WebGl
-	uObjectColor = gl.getUniformLocation(objectProgram, "uColor");
 	uLightColor = gl.getUniformLocation(lightProgram, "uColor");
 	uNLights = gl.getUniformLocation(objectProgram, "uNLights");
 
@@ -174,10 +173,6 @@ function setup(shaders) {
 	//Temporary lights
 	const RED = vec3(75, 75, 75);
 	addLight(vec3(0.0, 1.1, 2.0), RED, RED, RED, false, true);
-	
-	//addLight(vec3(0.0, 1.1, 2.0), RED, vec3(0, 9/255, 1.0), vec3(1.0, 1.0, 1.0), true);
-
-	console.log(objectOptions);
 
 	//Event listeners
 
@@ -306,9 +301,9 @@ function setupGUI() {
 	cameraGUI.add(cameraOptions, "near", 0.1, 20).onChange(updatePerspective);
 
 	const eye = cameraGUI.addFolder("eye");
-	eye.add(cameraOptions.eye, 0).onChange(updateCamera).listen();
-	eye.add(cameraOptions.eye, 1).onChange(updateCamera).listen();
-	eye.add(cameraOptions.eye, 2).onChange(updateCamera).listen();
+	eye.add(cameraOptions.eye, 0).step(0.1).onChange(updateCamera).listen();
+	eye.add(cameraOptions.eye, 1).step(0.1).onChange(updateCamera).listen();
+	eye.add(cameraOptions.eye, 2).step(0.1).onChange(updateCamera).listen();
 
 	const at = cameraGUI.addFolder("at");
 	at.add(cameraOptions.at, 0).onChange(updateCamera).listen();
@@ -316,9 +311,9 @@ function setupGUI() {
 	at.add(cameraOptions.at, 2).onChange(updateCamera).listen();
 
 	const up = cameraGUI.addFolder("up");
-	up.add(cameraOptions.up, 0).onChange(updateCamera).listen();
-	up.add(cameraOptions.up, 1).onChange(updateCamera).listen();
-	up.add(cameraOptions.up, 2).onChange(updateCamera).listen();
+	up.add(cameraOptions.up, 0, -1, 1).onChange(updateCamera).listen();
+	up.add(cameraOptions.up, 1, -1, 1).onChange(updateCamera).listen();
+	up.add(cameraOptions.up, 2, -1, 1).onChange(updateCamera).listen();
 
 	objectGui.add(objectOptions, "currentPrimitive", {'Sphere': 0, 'Cube': 1, 'Cylinder': 2,'Pyramid': 3, 'Torus': 4}).listen();
 	objectGui.add(objectOptions, "zBufferEnabled").listen().onChange(changeZBufferState).name("zBuffer");
@@ -328,16 +323,15 @@ function setupGUI() {
 	material.addColor(materialOptions, 'materialAmb').name('Ka');
 	material.addColor(materialOptions, 'materialDif').name('Kd');
 	material.addColor(materialOptions, 'materialSpe').name('Ks');
-	material.add(materialOptions, 'materialShy').name('Shinyness');
+	material.add(materialOptions, 'materialShy', 0, 100).name('Shinyness');
 
 	lightsGUI.domElement.id = 'gui';
-//	lightsGUI.add()
-	
 }
 
 //=============================================================================
 
 function drawScene() {
+	
 	const umNormals = gl.getUniformLocation(objectProgram, "mNormals");
 	const umViewNormals = gl.getUniformLocation(objectProgram, "mViewNormals");
 	const umView = gl.getUniformLocation(objectProgram, "mView");
@@ -347,9 +341,6 @@ function drawScene() {
 	gl.uniformMatrix4fv(umViewNormals, gl.GL_FALSE, flatten(normalMatrix(mView)));
 	gl.uniformMatrix4fv(umView, gl.GL_FALSE, flatten(mView));
 
-	gl.uniform3fv(uObjectColor, flatten(vec3(0.85, 0.68, 0.81)));
-
-	//TODO: switch out for cleaner loop, this is barely functional
 	gl.uniform3fv(uMaterialInfo.materialAmb, materialOptions.materialAmb.map((x) => {return x / 255.0}));
 	gl.uniform3fv(uMaterialInfo.materialDif, materialOptions.materialDif.map((x) => {return x / 255.0}));
 	gl.uniform3fv(uMaterialInfo.materialSpe, materialOptions.materialSpe.map((x) => {return x / 255.0}));
@@ -368,7 +359,6 @@ function drawScene() {
 	PRIMITIVES[objectOptions.currentPrimitive].draw(gl, objectProgram, generalOptions.wireframe ? gl.LINES : gl.TRIANGLES);
 
 	pushMatrix();
-		gl.uniform3fv(uObjectColor, flatten(vec3(1, 0.68, 0)));
 		multTranslation([0, -0.6, 0]);
 		multScale([3, 0.1, 3]);
 		uploadModelView();
@@ -387,7 +377,7 @@ function drawLights() {
 			gl.uniform3fv(uLightColor, flatten(lights[i].Id.map((x) => {return x / 255.0})));
 
 			multTranslation(lights[i].position);
-			multScale([0.08, 0.08, 0.08]);
+			multScale([0.05, 0.05, 0.05]);
 			uploadModelView(lightProgram);
 
 			SPHERE.draw(gl, lightProgram, gl.TRIANGLES);

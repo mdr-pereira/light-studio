@@ -45,13 +45,13 @@ void main() {
 		vec3 light;
 
 		if (uLight[i].isDirectional) {
-			light = normalize((fMViewNormals * vec4(uLight[i].position, 0.0)).xyz);
+			light = normalize((fMViewNormals * vec4(uLight[i].position, 1.0)).xyz);
 		} else {
-			light = normalize((fMView * vec4(uLight[i].position, 0.0)).xyz - fPosC);
+			light = normalize((fMView * vec4(uLight[i].position, 1.0)).xyz - fPosC);
 		}
 
 		vec3 L = normalize(light);
-		vec3 V = normalize(viewer);
+		vec3 V = normalize(viewer);	
 		vec3 N = normalize(fNormal);
 		vec3 R = normalize(reflect(-L, N));
 
