@@ -70,14 +70,6 @@ class Light {
 	} 
 }
 
-class DirectionalLight extends Light {
-	constructor (position, Ia, Id, Is, origin, isActive) {
-		super(position, Ia, Id, Is, false, isActive);
-
-		this.origin = origin;
-	}
-}
-
 //=========================================================================
 
 function setup(shaders) {
@@ -178,7 +170,7 @@ function setup(shaders) {
 	
 	//Temporary lights
 	const RED = vec3(75/255, 75/255, 75/255);
-	addLight(vec3(0.0, 1.1, 2.0), RED, vec3(0, 9/255, 1.0), vec3(1.0, 1.0, 1.0), true);
+	addLight(vec3(0.0, 1.1, 2.0), RED, RED, RED, false, true);
 	//addLight(vec3(0.0, 1.1, 2.0), RED, vec3(0, 9/255, 1.0), vec3(1.0, 1.0, 1.0), true);
 	//addLight(vec3(0.0, 1.1, 2.0), RED, vec3(0, 9/255, 1.0), vec3(1.0, 1.0, 1.0), true);
 
@@ -234,28 +226,22 @@ function changeZBufferState(changeToDisabled = !objectOptions.zBufferEnabled) {
 	objectOptions.zBufferEnabled = changeToDisabled;
 }
 
-function addLight(position, Ia, Id, Is, isDirectional) {
+function addLight(position, Ia, Id, Is, isDirectional, isActive) {
 	if (lights.length < MAX_LIGHTS) {
-		if (!isDirectional) {
-			lights.push(new Light(position, Ia, Id, Is, true));	
-		} else {
-			const from = vec3(0.0, 1.0, 0.0);
+		lights.push(new Light(position, Ia, Id, Is, isDirectional, isActive));	
 
-			lights.push(new DirectionalLight(position, Ia, Id, Is, from, true));
-		}
-	}
+		const light = lightsGUI.addFolder("light " + lights.length);
+		light.add(lights[lights.length - 1].position, "0").name("posX");
+		light.add(lights[lights.length - 1].position, "1").name("posY");
+		light.add(lights[lights.length - 1].position, "2").name("posZ");
 
-	const light = lightsGUI.addFolder("light " + lights.length);
-	light.add(lights[lights.length - 1].position, "0").name("posX");
-	light.add(lights[lights.length - 1].position, "1").name("posY");
-	light.add(lights[lights.length - 1].position, "2").name("posZ");
-
-	light.addColor(lights[lights.length - 1], "Ia").name("Ia");
-	light.addColor(lights[lights.length - 1], "Id").name("Ia");
-	light.addColor(lights[lights.length - 1], "Is").name("Ia"); 
+		light.addColor(lights[lights.length - 1], "Ia").name("Ia");
+		light.addColor(lights[lights.length - 1], "Id").name("Ia");
+		light.addColor(lights[lights.length - 1], "Is").name("Ia"); 
 	
-	light.add(lights[lights.length - 1], "isDirectional").name("isDirectional");
-	light.add(lights[lights.length - 1], "isActive").name("isActive");
+		light.add(lights[lights.length - 1], "isDirectional").name("isDirectional");
+		light.add(lights[lights.length - 1], "isActive").name("isActive");
+	}
 }
 
 //=============================================================================
@@ -335,17 +321,18 @@ function drawScene() {
 
 	gl.uniform3fv(uObjectColor, flatten(vec3(0.85, 0.68, 0.81)));
 
+
 	//TODO: switch out for cleaner loop, this is barely functional
-	gl.uniform3fv(uMaterialInfo.materialAmb, materialOptions.materialAmb);
-	gl.uniform3fv(uMaterialInfo.materialDif, materialOptions.materialDif);
-	gl.uniform3fv(uMaterialInfo.materialSpe, materialOptions.materialSpe);
+	gl.uniform3fv(uMaterialInfo.materialAmb, materialOptions.materialAmb.map((x) => {return x / 255.0}));
+	gl.uniform3fv(uMaterialInfo.materialDif, materialOptions.materialDif.map((x) => {return x / 255.0}));
+	gl.uniform3fv(uMaterialInfo.materialSpe, materialOptions.materialSpe.map((x) => {return x / 255.0}));
 	gl.uniform1f(uMaterialInfo.materialShy, materialOptions.materialShy);
 
 	for (let i in lights) {
 		gl.uniform3fv(uLights[i].position, lights[i].position);
-		gl.uniform3fv(uLights[i].Ia, lights[i].Ia);
-		gl.uniform3fv(uLights[i].Id, lights[i].Id);
-		gl.uniform3fv(uLights[i].Is, lights[i].Is);
+		gl.uniform3fv(uLights[i].Ia, lights[i].Ia.map((x) => {return x / 255.0}));
+		gl.uniform3fv(uLights[i].Id, lights[i].Id.map((x) => {return x / 255.0}));
+		gl.uniform3fv(uLights[i].Is, lights[i].Is.map((x) => {return x / 255.0}));
 		gl.uniform1i(uLights[i].isDirectional, lights[i].isDirectional);
 		gl.uniform1i(uLights[i].isActive, lights[i].isActive);
 	}
