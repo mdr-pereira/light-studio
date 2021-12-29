@@ -94,6 +94,7 @@ function setup(shaders) {
   generalOptions = {
     wireframe: false,
     normals: true,
+		lights: true,
   };
 
 	objectOptions = {
@@ -175,7 +176,6 @@ function setup(shaders) {
 	addLight(vec3(0.0, 1.1, 2.0), RED, RED, RED, false, true);
 
 	//Event listeners
-
 	window.addEventListener("resize", resize_canvas)
 	window.addEventListener("wheel", zoom);
 
@@ -250,9 +250,9 @@ function addLight(position, Ia, Id, Is, isDirectional, isActive) {
 
 function addLightGUI() {
 	const light = lightsGUI.addFolder("light " + lights.length);
-	light.add(lights[lights.length - 1].position, "0").name("posX");
-	light.add(lights[lights.length - 1].position, "1").name("posY");
-	light.add(lights[lights.length - 1].position, "2").name("posZ");
+	light.add(lights[lights.length - 1].position, "0").name("posX").step(0.1);
+	light.add(lights[lights.length - 1].position, "1").name("posY").step(0.1);
+	light.add(lights[lights.length - 1].position, "2").name("posZ").step(0.1);
 
 	light.addColor(lights[lights.length - 1], "Ia").name("Ia");
 	light.addColor(lights[lights.length - 1], "Id").name("Id");
@@ -294,6 +294,7 @@ function setupGUI() {
 	const optionsGUI = gui.addFolder("options");
 	optionsGUI.add(generalOptions, "wireframe").listen();
 	optionsGUI.add(generalOptions, "normals").listen();
+	optionsGUI.add(generalOptions, "lights").listen();
 
 	const cameraGUI = gui.addFolder("camera");
 	cameraGUI.add(cameraOptions, "fovy", MIN_FOVY, MAX_FOVY).step(1).onChange(updatePerspective).listen();
@@ -306,9 +307,9 @@ function setupGUI() {
 	eye.add(cameraOptions.eye, 2).step(0.1).onChange(updateCamera).listen();
 
 	const at = cameraGUI.addFolder("at");
-	at.add(cameraOptions.at, 0).onChange(updateCamera).listen();
-	at.add(cameraOptions.at, 1).onChange(updateCamera).listen();
-	at.add(cameraOptions.at, 2).onChange(updateCamera).listen();
+	at.add(cameraOptions.at, 0).step(0.1).onChange(updateCamera).listen();
+	at.add(cameraOptions.at, 1).step(0.1).onChange(updateCamera).listen();
+	at.add(cameraOptions.at, 2).step(0.1).onChange(updateCamera).listen();
 
 	const up = cameraGUI.addFolder("up");
 	up.add(cameraOptions.up, 0, -1, 1).onChange(updateCamera).listen();
@@ -323,7 +324,7 @@ function setupGUI() {
 	material.addColor(materialOptions, 'materialAmb').name('Ka');
 	material.addColor(materialOptions, 'materialDif').name('Kd');
 	material.addColor(materialOptions, 'materialSpe').name('Ks');
-	material.add(materialOptions, 'materialShy', 0, 100).name('Shinyness');
+	material.add(materialOptions, 'materialShy', 0, 100).name('Shinyness').step(0.1);
 
 	lightsGUI.domElement.id = 'gui';
 }
@@ -369,6 +370,8 @@ function drawScene() {
 function drawLights() {
 	gl.useProgram(lightProgram);
 	uploadProjection(lightProgram);
+
+	if(!generalOptions.lights) return;
 
 	for (let i in lights) {
 		pushMatrix();
