@@ -38,6 +38,10 @@ let uLightColor;
 let uMaterialInfo;
 let uLights;
 let uNLights;
+let uMNormals;
+let uMViewNormals;
+let uMView;
+
 
 /* Global Vars */
 let time = 0; // Global simulation time in days
@@ -120,6 +124,10 @@ function setup(shaders) {
 	// WebGl
 	uLightColor = gl.getUniformLocation(lightProgram, "uColor");
 	uNLights = gl.getUniformLocation(objectProgram, "uNLights");
+	uMNormals = gl.getUniformLocation(objectProgram, "mNormals");
+	uMViewNormals = gl.getUniformLocation(objectProgram, "mViewNormals");
+	uMView = gl.getUniformLocation(objectProgram, "mView");
+
 
 	uMaterialInfo = {
 		materialAmb: gl.getUniformLocation(objectProgram, "uMaterial.Ka"),
@@ -140,6 +148,7 @@ function setup(shaders) {
 		});
 	}
 
+	//==========
 	gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
 	// Initialization of library objects
@@ -153,8 +162,15 @@ function setup(shaders) {
 	gl.enable(gl.CULL_FACE);
 	gl.cullFace(gl.BACK);
 
+	//==========
+
 	window.requestAnimationFrame(render);
 
+	/**
+	 * Deals with the change in perspective caused by a canvas resize event, in the case that the user changes the overall window size.
+	 * 
+	 * @param {*} event 
+	 */
   function resize_canvas(event) {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -197,9 +213,9 @@ function setup(shaders) {
 				
 			case ' ':
 				if (event.ctrlKey) {
-					addLight(vec3(0.0, 1.1, 2.0), DEFAULT_COLOR, vec3(0, 9, 1.0), vec3(1.0, 1.0, 1.0), true, true);
+					addLight(vec3(0.0, 1.1, 2.0), RED, vec3(0, 9, 1.0), vec3(1.0, 1.0, 1.0), true);
 				} else {
-					addLight(vec3(0.0, 1.1, 2.0), DEFAULT_COLOR, vec3(0, 9, 1.0), vec3(1.0, 1.0, 1.0), false, true);
+					addLight(vec3(0.0, 1.1, 2.0), RED, vec3(0, 9, 1.0), vec3(1.0, 1.0, 1.0), false);
 				}
 				break;
 		}
@@ -210,6 +226,13 @@ function setup(shaders) {
 //=============================================================================
 //Auxiliary functions
 
+/**
+ * Deals with zoom-in events, in the case of this program, triggered by the scroll wheel.
+ * 
+ * Updates the perspective as a result.
+ * 
+ * @param {*} event 
+ */
 function zoom(event) {
 	let newFovy = cameraOptions.fovy + event.deltaY * 0.01;
 
@@ -220,10 +243,22 @@ function zoom(event) {
 	updatePerspective();
 }
 
+/**
+ * Changes the currently displayed primitive to the one indicated by the provided index.
+ *  
+ * @param {int} changeTo - defaults to the next available index, round-robin when reaching the end.
+ */
 function changePrimitive(changeTo = (++objectOptions.currentPrimitive) % PRIMITIVES.length) {
 	objectOptions.currentPrimitive = changeTo;
 }
 
+/**
+ * Changes the Z buffer depth test's state to that indicated by the parameter.
+ * 
+ * If positive, the z-buffer depth test is enabled.
+ * 
+ * @param {bool} changeToEnabled 
+ */
 function changeZBufferState(changeToEnabled = !objectOptions.zBufferEnabled) {
 	if (!changeToEnabled) {
 		gl.disable(gl.DEPTH_TEST);
@@ -235,6 +270,13 @@ function changeZBufferState(changeToEnabled = !objectOptions.zBufferEnabled) {
 	console.log(objectOptions);
 }
 
+/**
+ * Changes the back face culling state to that indicated by the parameter.
+ * 
+ * If positive, back face culling is enabled.
+ * 
+ * @param {bool} changeToEnabled 
+ */
 function changeBackFaceCullingState(changeToEnabled = !objectOptions.backFaceCullingEnabled) {
 	if (!changeToEnabled) {
 		gl.disable(gl.CULL_FACE);
@@ -246,14 +288,28 @@ function changeBackFaceCullingState(changeToEnabled = !objectOptions.backFaceCul
 	console.log(objectOptions);
 }
 
-function addLight(position, Ia, Id, Is, isDirectional, isActive) {
+/**
+ * Adds a new light, filling in the constructor with parameters.
+ * 
+ * The light is always initialized as active.
+ * 
+ * @param {vec3} position - position the new light will assume
+ * @param {vec3} Ia - ambient element of the light.
+ * @param {vec3} Id - diffuse element of the light.
+ * @param {vec3} Is - specular element of the light.
+ * @param {bool} isDirectional - 
+ */
+function addLight(position, Ia, Id, Is, isDirectional) {
 	if (lights.length < MAX_LIGHTS) {
-		lights.push(new Light(position, Ia, Id, Is, isDirectional, isActive));	
+		lights.push(new Light(position, Ia, Id, Is, isDirectional, true));	
 
 		addLightGUI();
 	}
 }
 
+/**
+ * For each light added, creates a corresponding GUI.
+ */
 function addLightGUI() {
 	const light = lightsGUI.addFolder("light " + lights.length);
 	light.add(lights[lights.length - 1].position, "0").name("X").step(0.1);
@@ -271,10 +327,20 @@ function addLightGUI() {
 //=============================================================================
 // WebGL Auxiliary functions
 
+/**
+ * Sends the current view model as a GLSL uniform.
+ * 
+ * @param {GLprogram} program 
+ */
 function uploadModelView(program = objectProgram) {
 	gl.uniformMatrix4fv(gl.getUniformLocation(program, "mModelView"), false, flatten(modelView()));
 }
 
+/**
+ * Sends the current projection model as a GLSL uniform.
+ * 
+ * @param {GLprogram} program 
+ */
 function uploadProjection(program = objectProgram) {
 	gl.uniformMatrix4fv(gl.getUniformLocation(program, "mProjection"), false, flatten(mProjection));
 }
@@ -295,6 +361,8 @@ function updateCamera() {
 
 /**
  * Setup related to the graphical user interface.
+ * 
+ * Automated initialization is possible, but with much less control over the specifics of each individual GUI.
  */
 function setupGUI() {
 	const optionsGUI = gui.addFolder("options");
@@ -337,16 +405,14 @@ function setupGUI() {
 
 //=============================================================================
 
-function drawScene() {
-	
-	const umNormals = gl.getUniformLocation(objectProgram, "mNormals");
-	const umViewNormals = gl.getUniformLocation(objectProgram, "mViewNormals");
-	const umView = gl.getUniformLocation(objectProgram, "mView");
-
+/**
+ * Sends all required GLSL uniforms.
+ */
+function sendSceneUniforms() {
 	gl.uniform1i(uNLights, lights.length);
-	gl.uniformMatrix4fv(umNormals, gl.GL_FALSE, flatten(normalMatrix(modelView())));
-	gl.uniformMatrix4fv(umViewNormals, gl.GL_FALSE, flatten(normalMatrix(mView)));
-	gl.uniformMatrix4fv(umView, gl.GL_FALSE, flatten(mView));
+	gl.uniformMatrix4fv(uMNormals, gl.GL_FALSE, flatten(normalMatrix(modelView())));
+	gl.uniformMatrix4fv(uMViewNormals, gl.GL_FALSE, flatten(normalMatrix(mView)));
+	gl.uniformMatrix4fv(uMView, gl.GL_FALSE, flatten(mView));
 
 	gl.uniform3fv(uMaterialInfo.materialAmb, materialOptions.materialAmb.map((x) => {return x / 255.0}));
 	gl.uniform3fv(uMaterialInfo.materialDif, materialOptions.materialDif.map((x) => {return x / 255.0}));
@@ -361,6 +427,13 @@ function drawScene() {
 		gl.uniform1i(uLights[i].isDirectional, lights[i].isDirectional);
 		gl.uniform1i(uLights[i].isActive, lights[i].isActive);
 	}
+}
+
+/**
+ * Draws the scene objects, not including lights.
+ */
+function drawScene() {
+	sendSceneUniforms();
 
 	uploadModelView();
 	PRIMITIVES[objectOptions.currentPrimitive].draw(gl, objectProgram, generalOptions.wireframe ? gl.LINES : gl.TRIANGLES);
@@ -373,6 +446,11 @@ function drawScene() {
 	popMatrix();
 }
 
+/**
+ * Draws scene lights, not including objects.
+ * 
+ * @returns none
+ */
 function drawLights() {
 	gl.useProgram(lightProgram);
 	uploadProjection(lightProgram);
