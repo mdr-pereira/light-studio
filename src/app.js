@@ -188,7 +188,9 @@ function setup(shaders) {
 
 	
 	// Default lights
-	const DEFAULT_COLOR = vec3(120, 120 , );
+	const DEFAULT_COLOR = vec3(255, 255, 255);
+	const DEFAULT_POSITION = vec3(0.0, 1.0, 0.0);
+
 	addLight(vec3(0.0, 0.0, 1.0), vec3(255, 0, 0), vec3(84, 21, 255), vec3(255, 0, 0), false, true);
 	addLight(vec3(0, 0, 0), vec3(255, 0, 0), vec3(0, 255, 193), vec3(255, 245, 88), false, true);
 	addLight(vec3(0, 3, 0), vec3(0, 0, 0), vec3(255, 0, 189), vec3(0, 0, 0), true, true);
@@ -213,9 +215,9 @@ function setup(shaders) {
 				
 			case ' ':
 				if (event.ctrlKey) {
-					addLight(vec3(0.0, 1.1, 2.0), RED, vec3(0, 9, 1.0), vec3(1.0, 1.0, 1.0), true);
+					addLight(DEFAULT_POSITION, DEFAULT_COLOR, DEFAULT_COLOR, DEFAULT_COLOR, true);
 				} else {
-					addLight(vec3(0.0, 1.1, 2.0), RED, vec3(0, 9, 1.0), vec3(1.0, 1.0, 1.0), false);
+					addLight(DEFAULT_POSITION, DEFAULT_COLOR, DEFAULT_COLOR, DEFAULT_COLOR, false);
 				}
 				break;
 		}
