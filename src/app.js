@@ -42,6 +42,7 @@ let uMNormals;
 let uMViewNormals;
 let uMView;
 
+let startAnimationFinished = false;
 
 /* Global Vars */
 let time = 0; // Global simulation time in days
@@ -86,7 +87,7 @@ function setup(shaders) {
 	lightProgram = buildProgramFromSources(gl, shaders["lights.vert"], shaders["lights.frag"]);
 
   cameraOptions = {
-    eye: vec3(0, 3.5, 5),
+    eye: vec3(0, 16.0, 5),
     at: vec3(0, 0, 0),
     up: vec3(0, 1, 0),
     fovy: 45,
@@ -492,6 +493,15 @@ function render() {
 	gl.useProgram(lightProgram);
 
 	drawLights();
+
+	if (!startAnimationFinished) {
+		cameraOptions.eye[1] -= 0.05;
+		updateCamera();
+
+		if (cameraOptions.eye[1] < 3.5) {
+			startAnimationFinished = true;
+		}
+	}
 }
 
 const urls = ["objects.vert", "objects.frag", "lights.frag", "lights.vert"];
