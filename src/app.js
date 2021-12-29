@@ -44,6 +44,7 @@ let uMNormals;
 let uMViewNormals;
 let uMView;
 
+let startAnimationFinished = false;
 
 /* Global Vars */
 let time = 0; // Global simulation time in days
@@ -88,7 +89,7 @@ function setup(shaders) {
 	lightProgram = buildProgramFromSources(gl, shaders["lights.vert"], shaders["lights.frag"]);
 
   cameraOptions = {
-    eye: vec3(0, 3.5, 5),
+    eye: vec3(0, 16.0, 5),
     at: vec3(0, 0, 0),
     up: vec3(0, 1, 0),
     fovy: 45,
@@ -113,7 +114,7 @@ function setup(shaders) {
 		materialAmb: vec3(0.0, 0.0, 0.0),
 		materialDif: vec3(95, 95, 95),
 		materialSpe: vec3(95, 95, 95),
-		materialShy: 40.0
+		materialShy: 5.0
 	};
 
 	lights = [];
@@ -190,7 +191,9 @@ function setup(shaders) {
 
 	
 	// Default lights
-	const DEFAULT_COLOR = vec3(120, 120 , );
+	const DEFAULT_COLOR = vec3(255, 255, 255);
+	const DEFAULT_POSITION = vec3(0.0, 1.0, 0.0);
+
 	addLight(vec3(0.0, 0.0, 1.0), vec3(255, 0, 0), vec3(84, 21, 255), vec3(255, 0, 0), false, true);
 	addLight(vec3(0, 0, 0), vec3(255, 0, 0), vec3(0, 255, 193), vec3(255, 245, 88), false, true);
 	addLight(vec3(0, 3, 0), vec3(0, 0, 0), vec3(255, 0, 189), vec3(0, 0, 0), true, true);
@@ -215,9 +218,9 @@ function setup(shaders) {
 				
 			case ' ':
 				if (event.ctrlKey) {
-					addLight(vec3(0.0, 1.1, 2.0), RED, vec3(0, 9, 1.0), vec3(1.0, 1.0, 1.0), true);
+					addLight(DEFAULT_POSITION, DEFAULT_COLOR, DEFAULT_COLOR, DEFAULT_COLOR, true);
 				} else {
-					addLight(vec3(0.0, 1.1, 2.0), RED, vec3(0, 9, 1.0), vec3(1.0, 1.0, 1.0), false);
+					addLight(DEFAULT_POSITION, DEFAULT_COLOR, DEFAULT_COLOR, DEFAULT_COLOR, false);
 				}
 				break;
 		}
@@ -496,6 +499,15 @@ function render() {
 	gl.useProgram(lightProgram);
 
 	drawLights();
+
+	if (!startAnimationFinished) {
+		cameraOptions.eye[1] -= 0.05;
+		updateCamera();
+
+		if (cameraOptions.eye[1] < 3.5) {
+			startAnimationFinished = true;
+		}
+	}
 }
 
 const urls = ["objects.vert", "objects.frag", "lights.frag", "lights.vert"];
