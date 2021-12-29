@@ -54,7 +54,7 @@ let materialOptions;
 const gui = new dat.GUI();
 const objectGui = new dat.GUI();
 const lightsGUI = new dat.GUI();
-lightsGUI.domElement.id = 'gui';
+
 //=========================================================================
 
 class Light {
@@ -249,18 +249,22 @@ function addLight(position, Ia, Id, Is, isDirectional, isActive) {
 	if (lights.length < MAX_LIGHTS) {
 		lights.push(new Light(position, Ia, Id, Is, isDirectional, isActive));	
 
-		const light = lightsGUI.addFolder("light " + lights.length);
-		light.add(lights[lights.length - 1].position, "0").name("posX");
-		light.add(lights[lights.length - 1].position, "1").name("posY");
-		light.add(lights[lights.length - 1].position, "2").name("posZ");
-
-		light.addColor(lights[lights.length - 1], "Ia").name("Ia");
-		light.addColor(lights[lights.length - 1], "Id").name("Ia");
-		light.addColor(lights[lights.length - 1], "Is").name("Ia"); 
-	
-		light.add(lights[lights.length - 1], "isDirectional").name("isDirectional");
-		light.add(lights[lights.length - 1], "isActive").name("isActive");
+		addLightGUI();
 	}
+}
+
+function addLightGUI() {
+	const light = lightsGUI.addFolder("light " + lights.length);
+	light.add(lights[lights.length - 1].position, "0").name("posX");
+	light.add(lights[lights.length - 1].position, "1").name("posY");
+	light.add(lights[lights.length - 1].position, "2").name("posZ");
+
+	light.addColor(lights[lights.length - 1], "Ia").name("Ia");
+	light.addColor(lights[lights.length - 1], "Id").name("Ia");
+	light.addColor(lights[lights.length - 1], "Is").name("Ia"); 
+
+	light.add(lights[lights.length - 1], "isDirectional").name("isDirectional");
+	light.add(lights[lights.length - 1], "isActive").name("isActive");
 }
 
 //=============================================================================
@@ -325,6 +329,10 @@ function setupGUI() {
 	material.addColor(materialOptions, 'materialDif').name('Kd');
 	material.addColor(materialOptions, 'materialSpe').name('Ks');
 	material.add(materialOptions, 'materialShy').name('Shinyness');
+
+	lightsGUI.domElement.id = 'gui';
+//	lightsGUI.add()
+	
 }
 
 //=============================================================================
