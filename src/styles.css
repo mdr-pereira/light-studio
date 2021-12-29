@@ -7,3 +7,5 @@ body {
     overflow: hidden; /*  Disable scrollbars */
     background-color: black;
 }
+
+#gui { position: absolute; top: 2px; left: 2px }

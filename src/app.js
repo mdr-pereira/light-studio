@@ -53,8 +53,8 @@ let materialOptions;
 
 const gui = new dat.GUI();
 const objectGui = new dat.GUI();
-const lightsGUI = gui.addFolder("lights");
-
+const lightsGUI = new dat.GUI();
+lightsGUI.domElement.id = 'gui';
 //=========================================================================
 
 class Light {
@@ -102,9 +102,9 @@ function setup(shaders) {
 	}
 
 	materialOptions = {
-		materialAmb: vec3(0.0, 0.098, 0.0),
-		materialDif: vec3(0.3725, 0.3725, 0.3725),
-		materialSpe: vec3(0.3725, 0.3725, 0.3725),
+		materialAmb: vec3(0.0, 0.68 * 255, 0.0),
+		materialDif: vec3(0.3725 * 255, 0.3725 * 255, 0.3725 * 255),
+		materialSpe: vec3(0.3725 * 255, 0.3725 * 255, 0.3725 * 255),
 		materialShy: 39.0
 	}
 
@@ -169,9 +169,9 @@ function setup(shaders) {
 
 	
 	//Temporary lights
-	const RED = vec3(75/255, 75/255, 75/255);
+	const RED = vec3(75, 75, 75);
 	addLight(vec3(0.0, 1.1, 2.0), RED, RED, RED, false, true);
-	//addLight(vec3(0.0, 1.1, 2.0), RED, vec3(0, 9/255, 1.0), vec3(1.0, 1.0, 1.0), true);
+	
 	//addLight(vec3(0.0, 1.1, 2.0), RED, vec3(0, 9/255, 1.0), vec3(1.0, 1.0, 1.0), true);
 
 	//Event listeners
@@ -190,9 +190,11 @@ function setup(shaders) {
 				break;
 				
 			case ' ':
-				//if (event.ctrlKey) {
-					//addLight();
-				//}
+				if (event.ctrlKey) {
+					addLight(vec3(0.0, 1.1, 2.0), RED, vec3(0, 9, 1.0), vec3(1.0, 1.0, 1.0), true, true);
+				} else {
+					addLight(vec3(0.0, 1.1, 2.0), RED, vec3(0, 9, 1.0), vec3(1.0, 1.0, 1.0), false, true);
+				}
 				break;
 		}
 	})
