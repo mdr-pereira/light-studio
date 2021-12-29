@@ -12,6 +12,8 @@ import * as dat from "../libs/dat.gui.module.js";
 
 const PRIMITIVES = [SPHERE, CUBE, CYLINDER, PYRAMID, TORUS];
 
+const DEFAULT_COLORS = [vec3(179, 140, 180), vec3(183, 145, 140), vec3(197, 164, 138), vec3(221, 198, 123), vec3(248, 242, 114), vec3(247, 177, 171)];
+
 const MAX_FOVY = 100;
 const MIN_FOVY = 1;
 
@@ -225,6 +227,10 @@ function setup(shaders) {
 
 //=============================================================================
 //Auxiliary functions
+
+function getRandomColor() {
+	return DEFAULT_COLORS[Math.random() * (DEFAULT_COLORS.length)];
+}
 
 /**
  * Deals with zoom-in events, in the case of this program, triggered by the scroll wheel.
