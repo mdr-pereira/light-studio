@@ -476,7 +476,7 @@ function drawLights() {
 			multScale([0.05, 0.05, 0.05]);
 			uploadModelView(lightProgram);
 
-			 SPHERE.draw(gl, lightProgram, gl.TRIANGLES);
+			SPHERE.draw(gl, lightProgram, gl.TRIANGLES);
 		}
 		popMatrix();
 	}
