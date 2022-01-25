@@ -1,14 +1,14 @@
-import { buildProgramFromSources, loadShadersFromURLS, setupWebGL } from "libs/utils.js";
-import { ortho, perspective, lookAt, flatten, vec3, vec4, inverse, mult, cross, dot, normalMatrix } from "libs/MV.js";
-import { modelView, loadMatrix, multMatrix, multRotationY, multScale, pushMatrix, popMatrix, multTranslation, multRotationX, multRotationZ, loadIdentity } from "libs/stack.js";
+import { buildProgramFromSources, loadShadersFromURLS, setupWebGL } from "/libs/utils.js";
+import { ortho, perspective, lookAt, flatten, vec3, vec4, inverse, mult, cross, dot, normalMatrix } from "/libs/MV.js";
+import { modelView, loadMatrix, multMatrix, multRotationY, multScale, pushMatrix, popMatrix, multTranslation, multRotationX, multRotationZ, loadIdentity } from "/libs/stack.js";
 
-import * as SPHERE from "libs/sphere.js";
-import * as CUBE from "libs/cube.js";
-import * as CYLINDER from "libs/cylinder.js";
-import * as PYRAMID from "libs/pyramid.js";
-import * as TORUS from "libs/torus.js";
+import * as SPHERE from "/libs/sphere.js";
+import * as CUBE from "/libs/cube.js";
+import * as CYLINDER from "/libs/cylinder.js";
+import * as PYRAMID from "/libs/pyramid.js";
+import * as TORUS from "/libs/torus.js";
 
-import * as dat from "libs/dat.gui.module.js";
+import * as dat from "/libs/dat.gui.module.js";
 
 const PRIMITIVES = [SPHERE, CUBE, CYLINDER, PYRAMID, TORUS];
 
